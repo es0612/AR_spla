@@ -10,20 +10,32 @@ ARスプラトゥーンゲームは、ARKitとRealityKitを活用したiOSネイ
 
 ```
 ARSplatoonGame/
-├── App/
-│   ├── ARSplatoonGameApp.swift          # メインアプリエントリーポイント
-│   └── ContentView.swift                # ルートビュー
-├── Views/
-│   ├── MenuView.swift                   # メインメニュー
-│   ├── ARGameView.swift                 # ARゲーム画面
-│   ├── GameResultView.swift             # 結果画面
-│   └── SettingsView.swift               # 設定画面
-├── AR/
-│   ├── ARViewController.swift           # ARセッション管理
-│   └── ARGameViewRepresentable.swift    # SwiftUI-UIKit Bridge
-├── Data/
-│   ├── GameDataModel.swift              # SwiftData モデル定義
-│   └── DataContainer.swift              # SwiftData コンテナ設定
+├── project.yml                          # XcodeGen設定ファイル
+├── Makefile                             # ビルド・開発タスク自動化
+├── .gitignore                           # Git除外設定（.xcodeproj含む）
+├── Sources/
+│   ├── App/
+│   │   ├── ARSplatoonGameApp.swift      # メインアプリエントリーポイント
+│   │   └── ContentView.swift            # ルートビュー
+│   ├── Views/
+│   │   ├── MenuView.swift               # メインメニュー
+│   │   ├── ARGameView.swift             # ARゲーム画面
+│   │   ├── GameResultView.swift         # 結果画面
+│   │   └── SettingsView.swift           # 設定画面
+│   ├── AR/
+│   │   ├── ARViewController.swift       # ARセッション管理
+│   │   └── ARGameViewRepresentable.swift # SwiftUI-UIKit Bridge
+│   └── Data/
+│       ├── GameDataModel.swift          # SwiftData モデル定義
+│       └── DataContainer.swift          # SwiftData コンテナ設定
+├── Resources/
+│   ├── Assets.xcassets/                 # アプリアイコン・画像リソース
+│   ├── Localizable.strings              # 多言語対応文字列
+│   ├── PrivacyInfo.xcprivacy           # プライバシーマニフェスト
+│   └── Info.plist                       # アプリ設定情報
+├── Tests/
+│   ├── ARSplatoonGameTests/             # アプリレベルのテスト
+│   └── ARSplatoonGameUITests/           # UIテスト
 └── Packages/
     ├── Domain/                          # ドメイン層 SPMパッケージ
     │   ├── Package.swift
@@ -579,3 +591,237 @@ let package = Package(
 2. **Make the easy change**: 実際の変更を実施
 3. **Tidy up**: 小さな整理整頓を継続
 4. **Repeat**: サイクルを繰り返す
+## Xc
+odeGen プロジェクト管理
+
+### XcodeGen設定ファイル (project.yml)
+
+```yaml
+name: ARSplatoonGame
+options:
+  bundleIdPrefix: com.yourcompany
+  deploymentTarget:
+    iOS: "17.0"
+  developmentLanguage: ja
+  
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+    TARGETED_DEVICE_FAMILY: "1"
+    SUPPORTS_MACCATALYST: false
+    
+targets:
+  ARSplatoonGame:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+        excludes:
+          - "**/*.md"
+    resources:
+      - path: Resources
+        excludes:
+          - "**/.DS_Store"
+    dependencies:
+      - package: Domain
+      - package: Application  
+      - package: Infrastructure
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.yourcompany.arsplatoongame
+        INFOPLIST_FILE: Resources/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        SWIFT_EMIT_LOC_STRINGS: true
+      configs:
+        Debug:
+          SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG
+        Release:
+          SWIFT_COMPILATION_MODE: wholemodule
+          
+  ARSplatoonGameTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests/ARSplatoonGameTests
+    dependencies:
+      - target: ARSplatoonGame
+      - package: TestSupport
+      
+  ARSplatoonGameUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: Tests/ARSplatoonGameUITests
+    dependencies:
+      - target: ARSplatoonGame
+
+packages:
+  Domain:
+    path: Packages/Domain
+  Application:
+    path: Packages/Application
+  Infrastructure:
+    path: Packages/Infrastructure
+  TestSupport:
+    path: Packages/TestSupport
+
+schemes:
+  ARSplatoonGame:
+    build:
+      targets:
+        ARSplatoonGame: all
+        ARSplatoonGameTests: [test]
+        ARSplatoonGameUITests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - ARSplatoonGameTests
+        - ARSplatoonGameUITests
+    archive:
+      config: Release
+```
+
+### Makefile による開発タスク自動化
+
+```makefile
+.PHONY: setup generate build test clean install-tools
+
+# 開発環境セットアップ
+setup: install-tools generate
+
+# 必要なツールのインストール
+install-tools:
+	@echo "Installing development tools..."
+	brew install xcodegen
+	brew install swiftformat
+	brew install swiftlint
+
+# Xcodeプロジェクトの生成
+generate:
+	@echo "Generating Xcode project..."
+	xcodegen generate
+
+# プロジェクトのビルド
+build:
+	@echo "Building project..."
+	xcodebuild -scheme ARSplatoonGame -configuration Debug build
+
+# テストの実行
+test:
+	@echo "Running tests..."
+	# SPMパッケージの高速テスト
+	cd Packages/Domain && swift test
+	cd Packages/Application && swift test
+	cd Packages/Infrastructure && swift test
+	# 統合テスト
+	xcodebuild test -scheme ARSplatoonGame -destination 'platform=iOS Simulator,name=iPhone 15 Pro'
+
+# コードフォーマット
+format:
+	@echo "Formatting code..."
+	swiftformat Sources/ Packages/
+	swiftlint --fix
+
+# プロジェクトのクリーンアップ
+clean:
+	@echo "Cleaning project..."
+	rm -rf ARSplatoonGame.xcodeproj
+	rm -rf DerivedData
+	xcodebuild clean
+
+# 新しいパッケージの作成
+create-package:
+	@read -p "Package name: " name; \
+	mkdir -p Packages/$$name/Sources/$$name; \
+	mkdir -p Packages/$$name/Tests/$${name}Tests; \
+	echo "// swift-tools-version: 5.9\nimport PackageDescription\n\nlet package = Package(\n    name: \"$$name\",\n    platforms: [.iOS(.v17)],\n    products: [\n        .library(name: \"$$name\", targets: [\"$$name\"])\n    ],\n    targets: [\n        .target(name: \"$$name\"),\n        .testTarget(name: \"$${name}Tests\", dependencies: [\"$$name\"])\n    ]\n)" > Packages/$$name/Package.swift
+
+# 開発サーバーの起動（ファイル監視）
+dev:
+	@echo "Starting development mode with file watching..."
+	fswatch -o Sources/ Packages/ | xargs -n1 -I{} make test-quick
+
+# 高速テスト（SPMパッケージのみ）
+test-quick:
+	@echo "Running quick tests..."
+	cd Packages/Domain && swift test
+	cd Packages/Application && swift test
+	cd Packages/Infrastructure && swift test
+```
+
+### .gitignore設定
+
+```gitignore
+# Xcode
+*.xcodeproj/
+!*.xcodeproj/project.xcworkspace/
+!*.xcodeproj/xcshareddata/
+*.xcworkspace/
+!default.xcworkspace/
+
+# XcodeGen
+project.yml.lock
+
+# Build products
+DerivedData/
+build/
+
+# Swift Package Manager
+.swiftpm/
+Packages/*/Package.resolved
+
+# CocoaPods
+Pods/
+*.podspec
+
+# Carthage
+Carthage/
+
+# Accio dependency management
+Dependencies/
+.accio/
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# Code Injection
+iOSInjectionProject/
+```
+
+### 開発ワークフローの改善
+
+#### プロジェクト初期化
+```bash
+# リポジトリクローン後の初期セットアップ
+make setup
+```
+
+#### 日常的な開発フロー
+```bash
+# コード変更後
+make format          # コードフォーマット
+make test-quick      # 高速テスト
+make generate        # プロジェクト再生成（必要時）
+```
+
+#### CI/CD統合
+```bash
+# CI環境での実行
+make install-tools
+make generate
+make test
+```
+
+### XcodeGenの利点
+
+1. **バージョン管理**: プロジェクト設定をYAMLで管理
+2. **チーム開発**: プロジェクトファイルの競合回避
+3. **一貫性**: 設定の標準化と自動化
+4. **保守性**: 設定変更の追跡可能性
+5. **CI/CD**: 自動化されたプロジェクト生成

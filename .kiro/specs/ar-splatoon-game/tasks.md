@@ -1,10 +1,24 @@
 # Implementation Plan
 
-- [ ] 1. プロジェクト基盤とSPMパッケージ構造の構築
-  - Xcodeプロジェクトの作成とSwiftUI基本設定
-  - SPMローカルパッケージ（Domain, Application, Infrastructure, TestSupport）の作成
-  - 各パッケージのPackage.swiftファイルと依存関係の定義
-  - _Requirements: 1.1, 5.1_
+- [ ] 1. プロジェクト基盤とXcodeGen環境の構築
+  - [ ] 1.1 XcodeGen環境のセットアップ
+    - XcodeGenのインストールとMakefileの作成
+    - project.ymlファイルの作成（ターゲット、スキーム、設定定義）
+    - .gitignoreファイルの設定（.xcodeprojを除外）
+    - 開発ツール（SwiftFormat、SwiftLint）の統合
+    - _Requirements: 5.1_
+
+  - [ ] 1.2 SPMローカルパッケージ構造の構築
+    - Domain, Application, Infrastructure, TestSupportパッケージの作成
+    - 各パッケージのPackage.swiftファイルと依存関係の定義
+    - XcodeGenでのパッケージ統合設定
+    - _Requirements: 1.1, 5.1_
+
+  - [ ] 1.3 基本プロジェクト構造の生成
+    - `make generate`でXcodeプロジェクトの生成確認
+    - SwiftUI基本設定とInfo.plistの設定
+    - リソースフォルダ（Assets.xcassets等）の作成
+    - _Requirements: 1.1, 5.1_
 
 - [ ] 2. ドメイン層の基盤実装（TDDアプローチ）
   - [ ] 2.1 Value Objectsの実装
@@ -155,6 +169,7 @@
     - 各サイズのアプリアイコン作成（1024x1024, 180x180, 120x120等）
     - Launch Screenの作成とダークモード対応
     - アプリ内で使用するアイコンとグラフィック素材の作成
+    - XcodeGenでのアセット管理設定の更新
     - _Requirements: 5.1_
 
   - [ ] 13.2 プライバシーとセキュリティ対応
@@ -224,6 +239,7 @@
     - _Requirements: 全要件_
 
   - [ ] 17.2 申請用ビルドの準備
+    - XcodeGenでのリリース設定の最適化
     - リリースビルドの作成とアーカイブ
     - コード署名とプロビジョニングプロファイルの設定
     - App Store Connectへのビルドアップロード
@@ -273,4 +289,16 @@
     - マルチプレイヤー対応の拡張計画
     - クラウド同期機能の検討
     - 収益化モデルの検討と実装準備
+    - _Requirements: 全要件_- [ 
+] 21. XcodeGen運用とメンテナンス
+  - [ ] 21.1 継続的なプロジェクト管理
+    - 新機能追加時のproject.yml更新手順の確立
+    - チーム開発でのXcodeGen運用ルールの策定
+    - プロジェクト設定変更の履歴管理
+    - _Requirements: 全要件_
+
+  - [ ] 21.2 CI/CD統合の最適化
+    - GitHub ActionsでのXcodeGen自動実行設定
+    - プロジェクト生成エラーの自動検出
+    - 設定ファイルの妥当性チェック自動化
     - _Requirements: 全要件_
