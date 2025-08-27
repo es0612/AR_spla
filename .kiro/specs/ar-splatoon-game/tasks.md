@@ -8,7 +8,7 @@
     - 開発ツール（SwiftFormat、SwiftLint）の統合
     - _Requirements: 5.1_
 
-  - [ ] 1.2 SPMローカルパッケージ構造の構築
+  - [x] 1.2 SPMローカルパッケージ構造の構築
     - Domain, Application, Infrastructure, TestSupportパッケージの作成
     - 各パッケージのPackage.swiftファイルと依存関係の定義
     - XcodeGenでのパッケージ統合設定
