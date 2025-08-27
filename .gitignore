@@ -2,6 +2,16 @@
 #
 # gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
 
+# XcodeGen - exclude generated project files
+*.xcodeproj/
+!*.xcodeproj/project.xcworkspace/
+!*.xcodeproj/xcshareddata/
+*.xcworkspace/
+!default.xcworkspace/
+
+# XcodeGen
+project.yml.lock
+
 ## User settings
 xcuserdata/
 
@@ -30,6 +40,8 @@ playground.xcworkspace
 # .swiftpm
 
 .build/
+.swiftpm/
+Packages/*/Package.resolved
 
 # CocoaPods
 #
@@ -60,3 +72,24 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
+
+# Build products
+DerivedData/
+build/
+
+# Accio dependency management
+Dependencies/
+.accio/
+
+# Code Injection
+iOSInjectionProject/
+
+# Development tools
+.DS_Store
+*~.nib
+*.swp
+*.swo
+
+# SwiftFormat and SwiftLint
+.swiftformat
+.swiftlint.yml
