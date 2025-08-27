@@ -1,7 +1,7 @@
 # Implementation Plan
 
 - [ ] 1. プロジェクト基盤とXcodeGen環境の構築
-  - [ ] 1.1 XcodeGen環境のセットアップ
+  - [-] 1.1 XcodeGen環境のセットアップ
     - XcodeGenのインストールとMakefileの作成
     - project.ymlファイルの作成（ターゲット、スキーム、設定定義）
     - .gitignoreファイルの設定（.xcodeprojを除外）
