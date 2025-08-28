@@ -1,6 +1,6 @@
 # Implementation Plan
 
-- [ ] 1. プロジェクト基盤とXcodeGen環境の構築
+- [x] 1. プロジェクト基盤とXcodeGen環境の構築
   - [x] 1.1 XcodeGen環境のセットアップ
     - XcodeGenのインストールとMakefileの作成
     - project.ymlファイルの作成（ターゲット、スキーム、設定定義）
@@ -14,7 +14,7 @@
     - XcodeGenでのパッケージ統合設定
     - _Requirements: 1.1, 5.1_
 
-  - [ ] 1.3 基本プロジェクト構造の生成
+  - [x] 1.3 基本プロジェクト構造の生成
     - `make generate`でXcodeプロジェクトの生成確認
     - SwiftUI基本設定とInfo.plistの設定
     - リソースフォルダ（Assets.xcassets等）の作成
