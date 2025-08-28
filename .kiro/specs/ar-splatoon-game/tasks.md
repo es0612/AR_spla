@@ -20,41 +20,41 @@
     - リソースフォルダ（Assets.xcassets等）の作成
     - _Requirements: 1.1, 5.1_
 
-- [ ] 2. ドメイン層の基盤実装（TDDアプローチ）
-  - [ ] 2.1 Value Objectsの実装
+- [x] 2. ドメイン層の基盤実装（TDDアプローチ）
+  - [x] 2.1 Value Objectsの実装
     - PlayerId, Position3D, GameScoreのValue Object実装
     - 各Value Objectの不変性とバリデーションロジック
     - Swift Testingを使用したValue Objectsのテスト作成
     - _Requirements: 1.1, 3.1_
 
-  - [ ] 2.2 Entityの実装
+  - [x] 2.2 Entityの実装
     - Player, InkSpot, GameSessionエンティティの実装
     - エンティティの識別子とライフサイクル管理
     - エンティティのテスト作成（テストビルダーパターン使用）
     - _Requirements: 1.1, 3.1, 3.2_
 
-  - [ ] 2.3 ドメインサービスの実装
+  - [x] 2.3 ドメインサービスの実装
     - GameRuleService（ゲームルール管理）の実装
     - ScoreCalculationService（スコア計算ロジック）の実装
     - ドメインサービスのテスト作成
     - _Requirements: 4.1, 4.2, 4.3_
 
-- [ ] 3. テスト支援パッケージの構築
-  - [ ] 3.1 テストビルダーとモックの実装
+- [x] 3. テスト支援パッケージの構築
+  - [x] 3.1 テストビルダーとモックの実装
     - PlayerBuilder, GameSessionBuilderの実装
     - MockGameRepository, MockPlayerRepositoryの実装
     - テストフィクスチャとテストデータの作成
     - _Requirements: 全要件のテスト支援_
 
-- [ ] 4. アプリケーション層の実装
-  - [ ] 4.1 基本ユースケースの実装
+- [x] 4. アプリケーション層の実装
+  - [x] 4.1 基本ユースケースの実装
     - StartGameUseCaseの実装（ゲーム開始ロジック）
     - ShootInkUseCaseの実装（インク発射ロジック）
     - CalculateScoreUseCaseの実装（スコア計算ロジック）
     - 各ユースケースのテスト作成
     - _Requirements: 3.1, 3.2, 4.1, 4.2_
 
-  - [ ] 4.2 ゲームコーディネーターの実装
+  - [x] 4.2 ゲームコーディネーターの実装
     - GameCoordinatorの実装（ゲーム全体の流れ制御）
     - ゲーム状態遷移の管理
     - GameCoordinatorのテスト作成

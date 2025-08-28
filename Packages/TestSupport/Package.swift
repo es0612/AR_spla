@@ -13,17 +13,13 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(path: "../Domain"),
-        .package(path: "../Application"),
-        .package(path: "../Infrastructure")
+        .package(path: "../Domain")
     ],
     targets: [
         .target(
             name: "TestSupport",
             dependencies: [
-                "Domain",
-                "Application",
-                "Infrastructure"
+                "Domain"
             ]
         ),
         .testTarget(

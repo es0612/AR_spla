@@ -3,8 +3,6 @@
 
 import Foundation
 import Domain
-import Application
-import Infrastructure
 
 /// TestSupport provides shared testing utilities across all layers
 /// It can access all other packages to provide comprehensive test support
