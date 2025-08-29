@@ -14,7 +14,8 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../Domain"),
-        .package(path: "../Application")
+        .package(path: "../Application"),
+        .package(path: "../TestSupport")
     ],
     targets: [
         .target(
@@ -29,7 +30,8 @@ let package = Package(
             dependencies: [
                 "Infrastructure",
                 .product(name: "Domain", package: "Domain"),
-                .product(name: "Application", package: "Application")
+                .product(name: "Application", package: "Application"),
+                .product(name: "TestSupport", package: "TestSupport")
             ]
         )
     ]

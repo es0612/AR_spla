@@ -60,14 +60,14 @@
     - GameCoordinatorのテスト作成
     - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
-- [ ] 5. インフラストラクチャ層の実装
-  - [ ] 5.1 ネットワーク通信の実装
+- [x] 5. インフラストラクチャ層の実装
+  - [x] 5.1 ネットワーク通信の実装
     - MultiPeerGameRepositoryの実装（Multipeer Connectivity統合）
     - NetworkGameMessageの実装（メッセージプロトコル）
     - ネットワーク通信のテスト作成（モック使用）
     - _Requirements: 2.1, 2.2, 2.3, 2.4_
 
-  - [ ] 5.2 データ永続化の実装
+  - [x] 5.2 データ永続化の実装
     - SwiftDataGameRepositoryの実装（ゲーム履歴保存）
     - SwiftDataモデル（GameHistory, PlayerProfile）の実装
     - データ永続化のテスト作成
