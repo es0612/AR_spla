@@ -73,14 +73,14 @@
     - データ永続化のテスト作成
     - _Requirements: 4.3, 4.4_
 
-- [ ] 6. プレゼンテーション層の基盤実装
-  - [ ] 6.1 SwiftUIビューの基本構造
+- [x] 6. プレゼンテーション層の基盤実装
+  - [x] 6.1 SwiftUIビューの基本構造
     - ContentView, MenuView, SettingsViewの実装
     - @Observableマクロを使用した状態管理の実装
     - ナビゲーション構造の構築
     - _Requirements: 5.1, 5.2, 5.3_
 
-  - [ ] 6.2 ゲーム画面のUI実装
+  - [x] 6.2 ゲーム画面のUI実装
     - ARGameViewの基本構造実装
     - ゲーム状態表示UI（スコア、タイマー）の実装
     - ゲーム結果画面（GameResultView）の実装
