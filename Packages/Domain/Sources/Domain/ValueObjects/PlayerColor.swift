@@ -1,14 +1,16 @@
 import Foundation
 
+// MARK: - PlayerColor
+
 /// Value Object representing player colors in the game
 public enum PlayerColor: String, CaseIterable, Codable {
-    case red = "red"
-    case blue = "blue"
-    case green = "green"
-    case yellow = "yellow"
-    case purple = "purple"
-    case orange = "orange"
-    
+    case red
+    case blue
+    case green
+    case yellow
+    case purple
+    case orange
+
     /// Display name for the color
     public var displayName: String {
         switch self {
@@ -20,7 +22,7 @@ public enum PlayerColor: String, CaseIterable, Codable {
         case .orange: return "Orange"
         }
     }
-    
+
     /// RGB values for the color (0.0 to 1.0)
     public var rgbValues: (red: Float, green: Float, blue: Float) {
         switch self {
@@ -34,9 +36,10 @@ public enum PlayerColor: String, CaseIterable, Codable {
     }
 }
 
-// MARK: - CustomStringConvertible
+// MARK: CustomStringConvertible
+
 extension PlayerColor: CustomStringConvertible {
     public var description: String {
-        return displayName
+        displayName
     }
 }

@@ -1,5 +1,7 @@
-import SwiftUI
 import Domain
+import SwiftUI
+
+// MARK: - MultiplayerConnectionView
 
 struct MultiplayerConnectionView: View {
     let gameState: GameState
@@ -7,19 +9,19 @@ struct MultiplayerConnectionView: View {
     @State private var isSearching = false
     @State private var foundPlayers: [String] = []
     @State private var isConnecting = false
-    
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 30) {
                 Text("プレイヤーを探しています...")
                     .font(.title2)
                     .fontWeight(.semibold)
-                
+
                 if isSearching || gameState.isConnecting {
                     ProgressView()
                         .scaleEffect(1.5)
                         .padding()
-                    
+
                     Text(gameState.isConnecting ? "ゲームを開始中..." : "近くのプレイヤーをスキャン中")
                         .foregroundColor(.secondary)
                 } else {
@@ -36,12 +38,12 @@ struct MultiplayerConnectionView: View {
                     .padding(.horizontal)
                     .disabled(isConnecting)
                 }
-                
-                if !foundPlayers.isEmpty && !gameState.isConnecting {
+
+                if !foundPlayers.isEmpty, !gameState.isConnecting {
                     VStack(alignment: .leading, spacing: 10) {
                         Text("見つかったプレイヤー:")
                             .font(.headline)
-                        
+
                         ForEach(foundPlayers, id: \.self) { playerName in
                             PlayerConnectionRow(
                                 playerName: playerName,
@@ -54,14 +56,14 @@ struct MultiplayerConnectionView: View {
                     }
                     .padding(.horizontal)
                 }
-                
+
                 // Connection Status
                 if gameState.currentPhase == .connecting {
                     VStack(spacing: 10) {
                         Text("接続中...")
                             .font(.headline)
                             .foregroundColor(.orange)
-                        
+
                         Text("相手プレイヤーとの接続を確立しています")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
@@ -72,7 +74,7 @@ struct MultiplayerConnectionView: View {
                     .cornerRadius(12)
                     .padding(.horizontal)
                 }
-                
+
                 Spacer()
             }
             .padding()
@@ -95,59 +97,57 @@ struct MultiplayerConnectionView: View {
             }
         }
     }
-    
+
     private func startSearching() {
         isSearching = true
         // TODO: 実際のMultipeer Connectivity実装
-        
+
         // デモ用のシミュレーション
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             foundPlayers = ["プレイヤー2", "プレイヤー3"]
             isSearching = false
         }
     }
-    
+
     private func connectToPlayer(_ playerName: String) {
         isConnecting = true
-        
+
         Task {
             // Create demo players for testing
             let currentPlayer = Player(
                 id: PlayerId(),
                 name: gameState.playerName,
                 color: PlayerColor.blue,
-                position: Position3D(x: 0, y: 0, z: 0),
-                isActive: true,
-                score: GameScore(value: 0)
+                position: Position3D(x: 0, y: 0, z: 0)
             )
-            
+
             let opponentPlayer = Player(
                 id: PlayerId(),
                 name: playerName,
                 color: PlayerColor.red,
-                position: Position3D(x: 2, y: 0, z: 0),
-                isActive: true,
-                score: GameScore(value: 0)
+                position: Position3D(x: 2, y: 0, z: 0)
             )
-            
+
             await gameState.startGame(with: [currentPlayer, opponentPlayer])
             isConnecting = false
         }
     }
 }
 
+// MARK: - PlayerConnectionRow
+
 struct PlayerConnectionRow: View {
     let playerName: String
     let isConnecting: Bool
     let onConnect: () -> Void
-    
+
     var body: some View {
         HStack {
             Image(systemName: "person.circle.fill")
                 .foregroundColor(.blue)
             Text(playerName)
             Spacer()
-            
+
             if isConnecting {
                 ProgressView()
                     .scaleEffect(0.8)

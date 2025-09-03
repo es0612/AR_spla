@@ -1,9 +1,11 @@
 import Foundation
 
+// MARK: - GameScoreError
+
 /// Error types for GameScore validation
 public enum GameScoreError: Error, LocalizedError {
     case invalidPaintedArea
-    
+
     public var errorDescription: String? {
         switch self {
         case .invalidPaintedArea:
@@ -12,6 +14,8 @@ public enum GameScoreError: Error, LocalizedError {
     }
 }
 
+// MARK: - GameScoreComparison
+
 /// Result of comparing two game scores
 public enum GameScoreComparison {
     case first
@@ -19,37 +23,39 @@ public enum GameScoreComparison {
     case tie
 }
 
+// MARK: - GameScore
+
 /// Value Object representing a game score based on painted area percentage
 public struct GameScore: Equatable, Comparable, Codable {
     public let paintedArea: Float
-    
+
     /// Painted area as percentage (same as paintedArea for this implementation)
     public var percentage: Float {
-        return paintedArea
+        paintedArea
     }
-    
+
     /// Create a GameScore with validated painted area
     public init(paintedArea: Float) {
-        guard paintedArea >= 0.0 && paintedArea <= 100.0 else {
+        guard paintedArea >= 0.0, paintedArea <= 100.0 else {
             fatalError("Invalid painted area: \(paintedArea). Must be between 0.0 and 100.0")
         }
         self.paintedArea = paintedArea
     }
-    
+
     /// Create a GameScore with validated painted area (throwing version)
     public static func create(paintedArea: Float) throws -> GameScore {
-        guard paintedArea >= 0.0 && paintedArea <= 100.0 else {
+        guard paintedArea >= 0.0, paintedArea <= 100.0 else {
             throw GameScoreError.invalidPaintedArea
         }
         return GameScore(paintedArea: paintedArea)
     }
-    
+
     /// Add painted area to current score, capped at maximum
     public func adding(paintedArea additionalArea: Float) -> GameScore {
-        let newArea = min(100.0, self.paintedArea + additionalArea)
+        let newArea = min(100.0, paintedArea + additionalArea)
         return GameScore(paintedArea: newArea)
     }
-    
+
     /// Determine winner between two scores
     public static func determineWinner(_ first: GameScore, _ second: GameScore) -> GameScoreComparison {
         if first.paintedArea > second.paintedArea {
@@ -60,24 +66,26 @@ public struct GameScore: Equatable, Comparable, Codable {
             return .tie
         }
     }
-    
+
     /// Zero score
     public static let zero = GameScore(paintedArea: 0.0)
-    
+
     /// Maximum score
     public static let maximum = GameScore(paintedArea: 100.0)
 }
 
 // MARK: - Comparable
-extension GameScore {
-    public static func < (lhs: GameScore, rhs: GameScore) -> Bool {
-        return lhs.paintedArea < rhs.paintedArea
+
+public extension GameScore {
+    static func < (lhs: GameScore, rhs: GameScore) -> Bool {
+        lhs.paintedArea < rhs.paintedArea
     }
 }
 
 // MARK: - CustomStringConvertible
+
 extension GameScore: CustomStringConvertible {
     public var description: String {
-        return "GameScore(paintedArea: \(paintedArea)%)"
+        "GameScore(paintedArea: \(paintedArea)%)"
     }
 }

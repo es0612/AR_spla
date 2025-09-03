@@ -1,20 +1,22 @@
 import SwiftUI
 
+// MARK: - MenuView
+
 struct MenuView: View {
     let gameState: GameState
     @State private var isSearchingForPlayers = false
-    
+
     var body: some View {
         VStack(spacing: 30) {
             Text("ゲームメニュー")
                 .font(.largeTitle)
                 .fontWeight(.bold)
-            
+
             // Game Status Display
             if gameState.currentPhase != .waiting {
                 GameStatusCard(gameState: gameState)
             }
-            
+
             VStack(spacing: 20) {
                 Button(action: {
                     isSearchingForPlayers = true
@@ -32,7 +34,7 @@ struct MenuView: View {
                     .cornerRadius(12)
                 }
                 .disabled(gameState.isConnecting || gameState.isGameActive)
-                
+
                 Button(action: {
                     // TODO: シングルプレイヤー機能（将来実装）
                 }) {
@@ -49,7 +51,7 @@ struct MenuView: View {
                     .cornerRadius(12)
                 }
                 .disabled(true)
-                
+
                 NavigationLink(destination: ARGameView(gameState: gameState)) {
                     HStack {
                         Image(systemName: "arkit")
@@ -63,7 +65,7 @@ struct MenuView: View {
                     .background(gameState.isGameActive ? Color.blue : Color.orange)
                     .cornerRadius(12)
                 }
-                
+
                 if gameState.currentPhase == .finished {
                     Button(action: {
                         gameState.resetGame()
@@ -83,7 +85,7 @@ struct MenuView: View {
                 }
             }
             .padding(.horizontal)
-            
+
             Spacer()
         }
         .padding()
@@ -95,10 +97,12 @@ struct MenuView: View {
     }
 }
 
+// MARK: - GameStatusCard
+
 /// Card displaying current game status
 struct GameStatusCard: View {
     let gameState: GameState
-    
+
     var body: some View {
         VStack(spacing: 8) {
             HStack {
@@ -109,7 +113,7 @@ struct GameStatusCard: View {
                     .foregroundColor(statusColor)
                 Spacer()
             }
-            
+
             if gameState.isGameActive {
                 HStack {
                     Text("残り時間: \(gameState.formattedRemainingTime)")
@@ -120,7 +124,7 @@ struct GameStatusCard: View {
                 }
                 .foregroundColor(.secondary)
             }
-            
+
             if !gameState.players.isEmpty {
                 HStack {
                     Text("プレイヤー: \(gameState.players.count)人")
@@ -135,7 +139,7 @@ struct GameStatusCard: View {
         .cornerRadius(12)
         .padding(.horizontal)
     }
-    
+
     private var statusIcon: String {
         switch gameState.currentPhase {
         case .waiting:
@@ -148,7 +152,7 @@ struct GameStatusCard: View {
             return "flag.checkered"
         }
     }
-    
+
     private var statusColor: Color {
         switch gameState.currentPhase {
         case .waiting:
@@ -161,7 +165,7 @@ struct GameStatusCard: View {
             return .blue
         }
     }
-    
+
     private var statusText: String {
         switch gameState.currentPhase {
         case .waiting:

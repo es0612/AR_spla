@@ -1,5 +1,7 @@
 import Foundation
 
+// MARK: - GameRules
+
 /// Value Object representing game rules and configuration
 public struct GameRules: Equatable, Codable {
     public let gameDuration: TimeInterval
@@ -7,7 +9,7 @@ public struct GameRules: Equatable, Codable {
     public let playerCollisionRadius: Float
     public let inkSpotMinSize: Float
     public let inkSpotMaxSize: Float
-    
+
     /// Create game rules with specified parameters
     public init(
         gameDuration: TimeInterval,
@@ -22,7 +24,7 @@ public struct GameRules: Equatable, Codable {
         self.inkSpotMinSize = inkSpotMinSize
         self.inkSpotMaxSize = inkSpotMaxSize
     }
-    
+
     /// Default game rules
     public static let `default` = GameRules(
         gameDuration: 180, // 3 minutes
@@ -31,20 +33,21 @@ public struct GameRules: Equatable, Codable {
         inkSpotMinSize: 0.1,
         inkSpotMaxSize: 2.0
     )
-    
+
     /// Validate if these game rules are valid
     public var isValid: Bool {
-        return gameDuration > 0 &&
-               maxInkSpotsPerPlayer > 0 &&
-               playerCollisionRadius > 0 &&
-               inkSpotMinSize > 0 &&
-               inkSpotMaxSize > inkSpotMinSize
+        gameDuration > 0 &&
+            maxInkSpotsPerPlayer > 0 &&
+            playerCollisionRadius > 0 &&
+            inkSpotMinSize > 0 &&
+            inkSpotMaxSize > inkSpotMinSize
     }
 }
 
-// MARK: - CustomStringConvertible
+// MARK: CustomStringConvertible
+
 extension GameRules: CustomStringConvertible {
     public var description: String {
-        return "GameRules(duration: \(gameDuration)s, maxInkSpots: \(maxInkSpotsPerPlayer), collision: \(playerCollisionRadius))"
+        "GameRules(duration: \(gameDuration)s, maxInkSpots: \(maxInkSpotsPerPlayer), collision: \(playerCollisionRadius))"
     }
 }

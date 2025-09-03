@@ -1,19 +1,21 @@
-import SwiftUI
 import ARKit
 import Domain
+import SwiftUI
+
+// MARK: - ARGameView
 
 struct ARGameView: View {
-    let gameState: GameState
+    @Bindable var gameState: GameState
     @Environment(\.dismiss) private var dismiss
     @State private var isARSupported = ARWorldTrackingConfiguration.isSupported
     @State private var showingGameResult = false
-    
+
     var body: some View {
         ZStack {
             if isARSupported {
                 ARGameViewRepresentable(gameState: gameState)
                     .ignoresSafeArea()
-                
+
                 // Game UI Overlay
                 GameUIOverlay(gameState: gameState, onEndGame: {
                     Task {
@@ -22,16 +24,15 @@ struct ARGameView: View {
                 }, onExit: {
                     dismiss()
                 })
-                
+
                 // Game Status Messages
                 if gameState.currentPhase == .connecting {
                     ConnectionStatusOverlay()
                 }
-                
+
                 if gameState.currentPhase == .waiting {
                     WaitingStatusOverlay()
                 }
-                
             } else {
                 ARNotSupportedView()
             }
@@ -55,12 +56,14 @@ struct ARGameView: View {
     }
 }
 
+// MARK: - GameUIOverlay
+
 /// Game UI overlay with timer, scores, and controls
 struct GameUIOverlay: View {
     let gameState: GameState
     let onEndGame: () -> Void
     let onExit: () -> Void
-    
+
     var body: some View {
         VStack {
             // Top UI - Timer and Controls
@@ -77,17 +80,17 @@ struct GameUIOverlay: View {
                 .background(Color.black.opacity(0.7))
                 .foregroundColor(.white)
                 .cornerRadius(8)
-                
+
                 Spacer()
-                
+
                 if gameState.isGameActive {
                     GameTimerView(gameState: gameState)
                 }
             }
             .padding()
-            
+
             Spacer()
-            
+
             // Bottom UI - Scores
             if gameState.isGameActive || gameState.currentPhase == .finished {
                 GameScoreView(gameState: gameState)
@@ -97,10 +100,12 @@ struct GameUIOverlay: View {
     }
 }
 
+// MARK: - GameTimerView
+
 /// Timer display component
 struct GameTimerView: View {
     let gameState: GameState
-    
+
     var body: some View {
         VStack(spacing: 4) {
             Text("残り時間")
@@ -117,7 +122,7 @@ struct GameTimerView: View {
         .background(Color.black.opacity(0.7))
         .cornerRadius(8)
     }
-    
+
     private var timeColor: Color {
         if gameState.remainingTime <= 30 {
             return .red
@@ -129,10 +134,12 @@ struct GameTimerView: View {
     }
 }
 
+// MARK: - GameScoreView
+
 /// Score display component
 struct GameScoreView: View {
     let gameState: GameState
-    
+
     var body: some View {
         HStack(spacing: 20) {
             // Player scores
@@ -143,7 +150,7 @@ struct GameScoreView: View {
                     totalCoverage: gameState.totalCoverage
                 )
             }
-            
+
             if gameState.players.count < 2 {
                 // Placeholder for missing opponent
                 VStack(spacing: 4) {
@@ -164,18 +171,20 @@ struct GameScoreView: View {
     }
 }
 
+// MARK: - PlayerScoreCard
+
 /// Individual player score card
 struct PlayerScoreCard: View {
     let player: Player
     let isCurrentPlayer: Bool
     let totalCoverage: Float
-    
+
     var body: some View {
         VStack(spacing: 4) {
             Text(isCurrentPlayer ? "自分" : player.name)
                 .font(.caption)
                 .foregroundColor(.white)
-            Text("\(Int(player.score.value * 100))%")
+            Text("\(Int(player.score.paintedArea))%")
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(playerColor)
@@ -189,7 +198,7 @@ struct PlayerScoreCard: View {
                 .stroke(playerColor.opacity(0.5), lineWidth: isCurrentPlayer ? 2 : 0)
         )
     }
-    
+
     private var playerColor: Color {
         switch player.color {
         case .blue:
@@ -200,9 +209,15 @@ struct PlayerScoreCard: View {
             return .green
         case .yellow:
             return .yellow
+        case .purple:
+            return .purple
+        case .orange:
+            return .orange
         }
     }
 }
+
+// MARK: - ConnectionStatusOverlay
 
 /// Connection status overlay
 struct ConnectionStatusOverlay: View {
@@ -211,12 +226,12 @@ struct ConnectionStatusOverlay: View {
             ProgressView()
                 .scaleEffect(1.5)
                 .tint(.white)
-            
+
             Text("接続中...")
                 .font(.title2)
                 .fontWeight(.semibold)
                 .foregroundColor(.white)
-            
+
             Text("相手プレイヤーとの接続を確立しています")
                 .font(.subheadline)
                 .foregroundColor(.white.opacity(0.8))
@@ -229,6 +244,8 @@ struct ConnectionStatusOverlay: View {
     }
 }
 
+// MARK: - WaitingStatusOverlay
+
 /// Waiting status overlay
 struct WaitingStatusOverlay: View {
     var body: some View {
@@ -236,12 +253,12 @@ struct WaitingStatusOverlay: View {
             Image(systemName: "person.2")
                 .font(.system(size: 48))
                 .foregroundColor(.white)
-            
+
             Text("プレイヤーを待機中")
                 .font(.title2)
                 .fontWeight(.semibold)
                 .foregroundColor(.white)
-            
+
             Text("メニューからマルチプレイヤーを選択してゲームを開始してください")
                 .font(.subheadline)
                 .foregroundColor(.white.opacity(0.8))
@@ -254,6 +271,8 @@ struct WaitingStatusOverlay: View {
     }
 }
 
+// MARK: - ARNotSupportedView
+
 /// AR not supported view
 struct ARNotSupportedView: View {
     var body: some View {
@@ -261,20 +280,20 @@ struct ARNotSupportedView: View {
             Image(systemName: "exclamationmark.triangle")
                 .font(.system(size: 60))
                 .foregroundColor(.orange)
-            
+
             Text("ARがサポートされていません")
                 .font(.title2)
                 .fontWeight(.bold)
-            
+
             Text("このデバイスはARKitをサポートしていません。ARKit対応デバイス（iPhone 6s以降、iPad Pro、iPad（第5世代）以降）でお試しください。")
                 .multilineTextAlignment(.center)
                 .foregroundColor(.secondary)
                 .padding(.horizontal)
-            
+
             Text("対応デバイス:")
                 .font(.headline)
                 .padding(.top)
-            
+
             VStack(alignment: .leading, spacing: 4) {
                 Text("• iPhone 6s以降")
                 Text("• iPad Pro（全モデル）")

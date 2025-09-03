@@ -7,6 +7,6 @@ import Foundation
 /// It has no dependencies on external frameworks or other layers
 public struct Domain {
     public static let version = "1.0.0"
-    
+
     private init() {}
 }

@@ -1,12 +1,14 @@
-import Foundation
 import Domain
+import Foundation
+
+// MARK: - ShootInkUseCase
 
 /// Use case for shooting ink in the game
 public struct ShootInkUseCase {
     private let gameRepository: GameRepository
     private let playerRepository: PlayerRepository
     private let gameRuleService: GameRuleService
-    
+
     /// Create a ShootInkUseCase
     public init(
         gameRepository: GameRepository,
@@ -17,7 +19,7 @@ public struct ShootInkUseCase {
         self.playerRepository = playerRepository
         self.gameRuleService = gameRuleService
     }
-    
+
     /// Execute the shoot ink use case
     /// - Parameters:
     ///   - gameSessionId: The ID of the game session
@@ -36,18 +38,18 @@ public struct ShootInkUseCase {
         guard let gameSession = try await gameRepository.findById(gameSessionId) else {
             throw ShootInkError.gameSessionNotFound
         }
-        
+
         // Validate game state
         try validateGameState(gameSession)
-        
+
         // Retrieve player
         guard let player = try await playerRepository.findById(playerId) else {
             throw ShootInkError.playerNotFound
         }
-        
+
         // Validate player can shoot ink
         try validatePlayerCanShootInk(player, in: gameSession, at: position, size: size)
-        
+
         // Create ink spot
         let inkSpot = InkSpot(
             id: InkSpotId(),
@@ -56,45 +58,45 @@ public struct ShootInkUseCase {
             size: size,
             ownerId: playerId
         )
-        
+
         // Add ink spot to game session
         let updatedGameSession = gameSession.addInkSpot(inkSpot)
-        
+
         // Check for player collisions with existing ink spots
         let updatedPlayers = try await checkPlayerCollisions(
             in: updatedGameSession,
             newInkSpot: inkSpot
         )
-        
+
         // Update game session with potentially affected players
         var finalGameSession = updatedGameSession
         for updatedPlayer in updatedPlayers {
             finalGameSession = finalGameSession.updatePlayer(updatedPlayer)
         }
-        
+
         // Save updated game session
         try await gameRepository.update(finalGameSession)
-        
+
         // Save updated players
         for updatedPlayer in updatedPlayers {
             try await playerRepository.update(updatedPlayer)
         }
-        
+
         return finalGameSession
     }
-    
+
     // MARK: - Private Methods
-    
+
     private func validateGameState(_ gameSession: GameSession) throws {
         guard gameSession.status == .active else {
             throw ShootInkError.gameNotActive
         }
-        
+
         guard gameSession.remainingTime > 0 else {
             throw ShootInkError.gameTimeExpired
         }
     }
-    
+
     private func validatePlayerCanShootInk(
         _ player: Player,
         in gameSession: GameSession,
@@ -105,38 +107,38 @@ public struct ShootInkUseCase {
         guard gameSession.players.contains(where: { $0.id == player.id }) else {
             throw ShootInkError.playerNotInGame
         }
-        
+
         // Check if player is active
         guard player.isActive else {
             throw ShootInkError.playerNotActive
         }
-        
+
         // Check if player can shoot ink at this position (using game rules)
         guard gameRuleService.canPlayerShootInk(player, at: position) else {
             throw ShootInkError.invalidPosition
         }
-        
+
         // Check ink spot size
         guard gameRuleService.isValidInkSpotSize(size) else {
             throw ShootInkError.invalidInkSpotSize(size)
         }
-        
+
         // Check if player has exceeded ink spot limit
         guard !gameRuleService.hasExceededInkSpotLimit(player.id, inkSpots: gameSession.inkSpots) else {
             throw ShootInkError.inkSpotLimitExceeded
         }
     }
-    
+
     private func checkPlayerCollisions(
         in gameSession: GameSession,
         newInkSpot: InkSpot
     ) async throws -> [Player] {
         var updatedPlayers: [Player] = []
-        
+
         for player in gameSession.players {
             // Skip the player who shot the ink
             guard player.id != newInkSpot.ownerId else { continue }
-            
+
             // Check collision with new ink spot
             if gameRuleService.checkPlayerInkCollision(player, with: newInkSpot) {
                 // Deactivate the player temporarily
@@ -144,10 +146,12 @@ public struct ShootInkUseCase {
                 updatedPlayers.append(deactivatedPlayer)
             }
         }
-        
+
         return updatedPlayers
     }
 }
+
+// MARK: - ShootInkError
 
 /// Errors that can occur when shooting ink
 public enum ShootInkError: Error, LocalizedError, Equatable {
@@ -160,7 +164,7 @@ public enum ShootInkError: Error, LocalizedError, Equatable {
     case invalidPosition
     case invalidInkSpotSize(Float)
     case inkSpotLimitExceeded
-    
+
     public var errorDescription: String? {
         switch self {
         case .gameSessionNotFound:
@@ -177,7 +181,7 @@ public enum ShootInkError: Error, LocalizedError, Equatable {
             return "Player is not currently active"
         case .invalidPosition:
             return "Invalid position for shooting ink"
-        case .invalidInkSpotSize(let size):
+        case let .invalidInkSpotSize(size):
             return "Invalid ink spot size: \(size)"
         case .inkSpotLimitExceeded:
             return "Player has exceeded the maximum number of ink spots"

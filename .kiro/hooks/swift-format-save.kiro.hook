@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Swift Code Formatter",
+  "description": "Automatically formats Swift code using SwiftFormat when Swift files are saved",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.swift"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A Swift file has been saved. Please format the code using SwiftFormat to ensure consistent code style. Run the formatting command and apply the changes to maintain code quality standards."
+  }
+}

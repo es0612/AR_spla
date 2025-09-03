@@ -86,14 +86,14 @@
     - ゲーム結果画面（GameResultView）の実装
     - _Requirements: 4.1, 4.2, 4.3, 5.2_
 
-- [ ] 7. AR機能の統合
-  - [ ] 7.1 ARKit基盤の実装
+- [x] 7. AR機能の統合
+  - [x] 7.1 ARKit基盤の実装
     - ARViewControllerの実装（ARセッション管理）
     - ARGameViewRepresentableの実装（SwiftUI-UIKit Bridge）
     - 平面検出とゲームフィールド配置の実装
     - _Requirements: 1.1, 1.2, 1.3_
 
-  - [ ] 7.2 AR描画システムの実装
+  - [x] 7.2 AR描画システムの実装
     - ARInkRendererの実装（インクスポットの3D描画）
     - ARGameFieldRepositoryの実装（AR空間でのゲームフィールド管理）
     - AR座標系とゲーム座標系の変換処理

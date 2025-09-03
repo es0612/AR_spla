@@ -2,18 +2,18 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var gameState = GameState()
-    
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 30) {
                 Text("AR Splatoon")
                     .font(.largeTitle)
                     .fontWeight(.bold)
-                
+
                 Text("ARでスプラトゥーン風対戦ゲーム")
                     .font(.headline)
                     .foregroundColor(.secondary)
-                
+
                 VStack(spacing: 20) {
                     NavigationLink(destination: MenuView(gameState: gameState)) {
                         Text("ゲーム開始")
@@ -25,7 +25,7 @@ struct ContentView: View {
                             .background(Color.blue)
                             .cornerRadius(12)
                     }
-                    
+
                     NavigationLink(destination: SettingsView(gameState: gameState)) {
                         Text("設定")
                             .font(.title2)
@@ -38,7 +38,7 @@ struct ContentView: View {
                     }
                 }
                 .padding(.horizontal)
-                
+
                 Spacer()
             }
             .padding()

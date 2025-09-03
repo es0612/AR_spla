@@ -1,6 +1,8 @@
+import Domain
 import Foundation
 import SwiftData
-import Domain
+
+// MARK: - GameHistory
 
 /// SwiftData model for game history persistence
 @available(iOS 17.0, macOS 14.0, *)
@@ -14,7 +16,7 @@ public class GameHistory {
     public var opponentScore: Double
     public var playerNames: [String]
     public var gameStatus: String
-    
+
     public init(
         id: String = UUID().uuidString,
         date: Date = Date(),
@@ -36,6 +38,8 @@ public class GameHistory {
     }
 }
 
+// MARK: - PlayerProfile
+
 /// SwiftData model for player profile persistence
 @available(iOS 17.0, macOS 14.0, *)
 @Model
@@ -48,7 +52,7 @@ public class PlayerProfile {
     public var averageScore: Double
     public var lastPlayedDate: Date?
     public var preferredColor: String
-    
+
     public init(
         name: String,
         totalGames: Int = 0,
@@ -68,20 +72,20 @@ public class PlayerProfile {
         self.lastPlayedDate = lastPlayedDate
         self.preferredColor = preferredColor
     }
-    
+
     /// Calculate win rate as percentage
     public var winRate: Double {
         guard totalGames > 0 else { return 0.0 }
         return (Double(wins) / Double(totalGames)) * 100.0
     }
-    
+
     /// Update statistics after a game
     public func updateAfterGame(score: Double, won: Bool) {
         totalGames += 1
         totalPaintedArea += score
         averageScore = totalPaintedArea / Double(totalGames)
         lastPlayedDate = Date()
-        
+
         if won {
             wins += 1
         } else {
@@ -93,17 +97,17 @@ public class PlayerProfile {
 // MARK: - Domain Model Conversion Extensions
 
 @available(iOS 17.0, macOS 14.0, *)
-extension GameHistory {
+public extension GameHistory {
     /// Create GameHistory from Domain GameSession
-    public convenience init(from gameSession: GameSession) {
-        let playerScores = gameSession.players.map { $0.score.paintedArea }
-        let playerNames = gameSession.players.map { $0.name }
-        
+    convenience init(from gameSession: GameSession) {
+        let playerScores = gameSession.players.map(\.score.paintedArea)
+        let playerNames = gameSession.players.map(\.name)
+
         let playerScore = playerScores.first ?? 0.0
         let opponentScore = playerScores.count > 1 ? playerScores[1] : 0.0
-        
+
         let winner = gameSession.winner?.name
-        
+
         self.init(
             id: gameSession.id.value.uuidString,
             date: gameSession.startedAt ?? Date(),
@@ -118,20 +122,20 @@ extension GameHistory {
 }
 
 @available(iOS 17.0, macOS 14.0, *)
-extension PlayerProfile {
+public extension PlayerProfile {
     /// Create PlayerProfile from Domain Player
-    public convenience init(from player: Player) {
+    convenience init(from player: Player) {
         self.init(
             name: player.name,
             preferredColor: player.color.rawValue
         )
     }
-    
+
     /// Update profile from Domain Player
-    public func update(from player: Player, gameResult: GameResult) {
+    func update(from player: Player, gameResult: GameResult) {
         let score = Double(player.score.paintedArea)
         let won = gameResult == .won
-        
+
         updateAfterGame(score: score, won: won)
         preferredColor = player.color.rawValue
     }

@@ -1,8 +1,8 @@
 import SwiftUI
 
 struct SettingsView: View {
-    let gameState: GameState
-    
+    @Bindable var gameState: GameState
+
     var body: some View {
         Form {
             Section("プレイヤー設定") {
@@ -15,7 +15,7 @@ struct SettingsView: View {
                         .disabled(gameState.isGameActive)
                 }
             }
-            
+
             Section("ゲーム設定") {
                 HStack {
                     Text("ゲーム時間")
@@ -23,8 +23,8 @@ struct SettingsView: View {
                     Text("\(Int(gameState.gameDuration))秒")
                         .foregroundColor(.secondary)
                 }
-                
-                Slider(value: $gameState.gameDuration, in: 60...300, step: 30) {
+
+                Slider(value: $gameState.gameDuration, in: 60 ... 300, step: 30) {
                     Text("ゲーム時間")
                 } minimumValueLabel: {
                     Text("1分")
@@ -32,18 +32,18 @@ struct SettingsView: View {
                     Text("5分")
                 }
                 .disabled(gameState.isGameActive)
-                
+
                 Text("ゲーム中は設定を変更できません")
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .opacity(gameState.isGameActive ? 1 : 0)
             }
-            
+
             Section("オーディオ・触覚") {
                 Toggle("サウンド", isOn: $gameState.soundEnabled)
                 Toggle("触覚フィードバック", isOn: $gameState.hapticEnabled)
             }
-            
+
             Section("ゲーム統計") {
                 if gameState.currentPhase != .waiting {
                     HStack {
@@ -52,7 +52,7 @@ struct SettingsView: View {
                         Text(phaseDisplayName)
                             .foregroundColor(.secondary)
                     }
-                    
+
                     if gameState.isGameActive {
                         HStack {
                             Text("残り時間")
@@ -60,7 +60,7 @@ struct SettingsView: View {
                             Text(gameState.formattedRemainingTime)
                                 .foregroundColor(.secondary)
                         }
-                        
+
                         HStack {
                             Text("カバー率")
                             Spacer()
@@ -68,7 +68,7 @@ struct SettingsView: View {
                                 .foregroundColor(.secondary)
                         }
                     }
-                    
+
                     if let winner = gameState.winner {
                         HStack {
                             Text("勝者")
@@ -80,7 +80,7 @@ struct SettingsView: View {
                     }
                 }
             }
-            
+
             Section("情報") {
                 HStack {
                     Text("バージョン")
@@ -88,7 +88,7 @@ struct SettingsView: View {
                     Text("1.0.0")
                         .foregroundColor(.secondary)
                 }
-                
+
                 HStack {
                     Text("ビルド")
                     Spacer()
@@ -96,13 +96,13 @@ struct SettingsView: View {
                         .foregroundColor(.secondary)
                 }
             }
-            
+
             Section {
                 Button("設定を保存") {
                     gameState.saveSettings()
                 }
                 .frame(maxWidth: .infinity)
-                
+
                 if gameState.currentPhase != .waiting {
                     Button("ゲームをリセット", role: .destructive) {
                         gameState.resetGame()
@@ -114,7 +114,7 @@ struct SettingsView: View {
         .navigationTitle("設定")
         .navigationBarTitleDisplayMode(.inline)
     }
-    
+
     private var phaseDisplayName: String {
         switch gameState.currentPhase {
         case .waiting:

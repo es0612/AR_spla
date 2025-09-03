@@ -1,5 +1,7 @@
-import Foundation
 import Domain
+import Foundation
+
+// MARK: - SimpleGameHistory
 
 /// Simple data model for game history (not SwiftData dependent)
 public class SimpleGameHistory {
@@ -11,7 +13,7 @@ public class SimpleGameHistory {
     public var opponentScore: Double
     public var playerNames: [String]
     public var gameStatus: String
-    
+
     public init(
         id: String = UUID().uuidString,
         date: Date = Date(),
@@ -33,6 +35,8 @@ public class SimpleGameHistory {
     }
 }
 
+// MARK: - SimplePlayerProfile
+
 /// Simple data model for player profile (not SwiftData dependent)
 public class SimplePlayerProfile {
     public var name: String
@@ -43,7 +47,7 @@ public class SimplePlayerProfile {
     public var averageScore: Double
     public var lastPlayedDate: Date?
     public var preferredColor: String
-    
+
     public init(
         name: String,
         totalGames: Int = 0,
@@ -63,20 +67,20 @@ public class SimplePlayerProfile {
         self.lastPlayedDate = lastPlayedDate
         self.preferredColor = preferredColor
     }
-    
+
     /// Calculate win rate as percentage
     public var winRate: Double {
         guard totalGames > 0 else { return 0.0 }
         return (Double(wins) / Double(totalGames)) * 100.0
     }
-    
+
     /// Update statistics after a game
     public func updateAfterGame(score: Double, won: Bool) {
         totalGames += 1
         totalPaintedArea += score
         averageScore = totalPaintedArea / Double(totalGames)
         lastPlayedDate = Date()
-        
+
         if won {
             wins += 1
         } else {
@@ -87,17 +91,17 @@ public class SimplePlayerProfile {
 
 // MARK: - Domain Model Conversion Extensions
 
-extension SimpleGameHistory {
+public extension SimpleGameHistory {
     /// Create SimpleGameHistory from Domain GameSession
-    public convenience init(from gameSession: GameSession) {
-        let playerScores = gameSession.players.map { $0.score.paintedArea }
-        let playerNames = gameSession.players.map { $0.name }
-        
+    convenience init(from gameSession: GameSession) {
+        let playerScores = gameSession.players.map(\.score.paintedArea)
+        let playerNames = gameSession.players.map(\.name)
+
         let playerScore = playerScores.first ?? 0.0
         let opponentScore = playerScores.count > 1 ? playerScores[1] : 0.0
-        
+
         let winner = gameSession.winner?.name
-        
+
         self.init(
             id: gameSession.id.value.uuidString,
             date: gameSession.startedAt ?? Date(),
@@ -111,25 +115,24 @@ extension SimpleGameHistory {
     }
 }
 
-extension SimplePlayerProfile {
+public extension SimplePlayerProfile {
     /// Create SimplePlayerProfile from Domain Player
-    public convenience init(from player: Player) {
+    convenience init(from player: Player) {
         self.init(
             name: player.name,
             preferredColor: player.color.rawValue
         )
     }
-    
+
     /// Update profile from Domain Player
-    public func update(from player: Player, gameResult: SimpleGameResult) {
+    func update(from player: Player, gameResult: SimpleGameResult) {
         let score = Double(player.score.paintedArea)
         let won = gameResult == .won
-        
+
         updateAfterGame(score: score, won: won)
         preferredColor = player.color.rawValue
     }
 }
-
 
 /// Game result enumeration for simple profile updates
 public enum SimpleGameResult {

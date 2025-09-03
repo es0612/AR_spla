@@ -1,23 +1,26 @@
 import Foundation
 
+// MARK: - PlayerId
+
 /// Value Object representing a unique player identifier
 public struct PlayerId: Equatable, Hashable, Codable {
     public let value: UUID
-    
+
     /// Create a PlayerId with a specific UUID
     public init(_ uuid: UUID) {
-        self.value = uuid
+        value = uuid
     }
-    
+
     /// Create a PlayerId with a new random UUID
     public init() {
-        self.value = UUID()
+        value = UUID()
     }
 }
 
-// MARK: - CustomStringConvertible
+// MARK: CustomStringConvertible
+
 extension PlayerId: CustomStringConvertible {
     public var description: String {
-        return "PlayerId(\(value.uuidString))"
+        "PlayerId(\(value.uuidString))"
     }
 }

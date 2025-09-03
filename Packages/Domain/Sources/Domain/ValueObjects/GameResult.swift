@@ -1,5 +1,7 @@
 import Foundation
 
+// MARK: - GameResult
+
 /// Value Object representing a player's game result
 public struct GameResult: Equatable, Codable {
     public let playerId: PlayerId
@@ -8,7 +10,7 @@ public struct GameResult: Equatable, Codable {
     public let rank: Int
     public let totalInkSpots: Int
     public let areaEfficiency: Float
-    
+
     /// Create a game result
     public init(
         playerId: PlayerId,
@@ -25,29 +27,31 @@ public struct GameResult: Equatable, Codable {
         self.totalInkSpots = totalInkSpots
         self.areaEfficiency = areaEfficiency
     }
-    
+
     /// Whether this result represents a winning position
     public var isWinner: Bool {
-        return rank == 1
+        rank == 1
     }
-    
+
     /// Whether this result represents a perfect game (100% coverage)
     public var isPerfectGame: Bool {
-        return score.paintedArea >= 100.0
+        score.paintedArea >= 100.0
     }
 }
 
-// MARK: - Comparable
+// MARK: Comparable
+
 extension GameResult: Comparable {
     public static func < (lhs: GameResult, rhs: GameResult) -> Bool {
         // Lower rank is better (1st place < 2nd place)
-        return lhs.rank < rhs.rank
+        lhs.rank < rhs.rank
     }
 }
 
-// MARK: - CustomStringConvertible
+// MARK: CustomStringConvertible
+
 extension GameResult: CustomStringConvertible {
     public var description: String {
-        return "GameResult(player: \(playerName), score: \(score.paintedArea)%, rank: \(rank))"
+        "GameResult(player: \(playerName), score: \(score.paintedArea)%, rank: \(rank))"
     }
 }

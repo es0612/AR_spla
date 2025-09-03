@@ -1,37 +1,41 @@
-import Foundation
 import Domain
+import Foundation
+
+// MARK: - GameCoordinator
 
 /// Coordinator for managing the overall game flow and state transitions
 public class GameCoordinator {
-    
     // MARK: - Dependencies
+
     private let startGameUseCase: StartGameUseCase
     private let shootInkUseCase: ShootInkUseCase
     private let calculateScoreUseCase: CalculateScoreUseCase
     private let gameRepository: GameRepository
     private let playerRepository: PlayerRepository
-    
+
     // MARK: - Published State
+
     public private(set) var currentGameSession: GameSession?
     public private(set) var gamePhase: GamePhase = .waiting
     public private(set) var players: [Player] = []
     public private(set) var winner: Player?
     public private(set) var gameResults: [GameResult] = []
     public private(set) var lastError: Error?
-    
+
     // MARK: - Game State
+
     public var isGameActive: Bool {
-        return currentGameSession?.status == .active
+        currentGameSession?.status == .active
     }
-    
+
     public var remainingTime: TimeInterval {
-        return currentGameSession?.remainingTime ?? 0
+        currentGameSession?.remainingTime ?? 0
     }
-    
+
     public var totalCoverage: Float = 0.0
-    
+
     // MARK: - Initialization
-    
+
     /// Create a GameCoordinator
     public init(
         gameRepository: GameRepository,
@@ -42,29 +46,29 @@ public class GameCoordinator {
     ) {
         self.gameRepository = gameRepository
         self.playerRepository = playerRepository
-        
-        self.startGameUseCase = StartGameUseCase(
+
+        startGameUseCase = StartGameUseCase(
             gameRepository: gameRepository,
             playerRepository: playerRepository,
             gameRuleService: gameRuleService
         )
-        
-        self.shootInkUseCase = ShootInkUseCase(
+
+        shootInkUseCase = ShootInkUseCase(
             gameRepository: gameRepository,
             playerRepository: playerRepository,
             gameRuleService: gameRuleService
         )
-        
-        self.calculateScoreUseCase = CalculateScoreUseCase(
+
+        calculateScoreUseCase = CalculateScoreUseCase(
             gameRepository: gameRepository,
             playerRepository: playerRepository,
             scoreCalculationService: scoreCalculationService,
             fieldSize: fieldSize
         )
     }
-    
+
     // MARK: - Game Flow Methods
-    
+
     /// Start a new game with the given players
     /// - Parameters:
     ///   - players: The players to participate in the game
@@ -74,10 +78,10 @@ public class GameCoordinator {
         do {
             clearError()
             gamePhase = .connecting
-            
+
             // Start the game using the use case
             let gameSession = try await startGameUseCase.execute(players: players, duration: duration)
-            
+
             // Update state
             currentGameSession = gameSession
             self.players = gameSession.players
@@ -85,14 +89,13 @@ public class GameCoordinator {
             winner = nil
             gameResults = []
             totalCoverage = 0.0
-            
         } catch {
             gamePhase = .waiting
             lastError = error
             throw GameCoordinatorError.gameStartFailed(error)
         }
     }
-    
+
     /// Shoot ink at the specified position
     /// - Parameters:
     ///   - playerId: The ID of the player shooting ink
@@ -103,10 +106,10 @@ public class GameCoordinator {
         guard let gameSession = currentGameSession else {
             throw GameCoordinatorError.noActiveGame
         }
-        
+
         do {
             clearError()
-            
+
             // Shoot ink using the use case
             let updatedGameSession = try await shootInkUseCase.execute(
                 gameSessionId: gameSession.id,
@@ -114,63 +117,61 @@ public class GameCoordinator {
                 position: position,
                 size: size
             )
-            
+
             // Update state
             currentGameSession = updatedGameSession
             players = updatedGameSession.players
-            
+
             // Update total coverage
             totalCoverage = try await calculateScoreUseCase.calculateTotalCoverage(
                 gameSessionId: updatedGameSession.id
             )
-            
+
             // Check if game should end
             await checkGameEndConditions()
-            
         } catch {
             lastError = error
             throw GameCoordinatorError.inkShotFailed(error)
         }
     }
-    
+
     /// End the current game
     /// - Throws: GameCoordinatorError if the game cannot be ended
     public func endGame() async throws {
         guard let gameSession = currentGameSession else {
             throw GameCoordinatorError.noActiveGame
         }
-        
+
         do {
             clearError()
-            
+
             // End the game session
             let endedGameSession = gameSession.end()
-            
+
             // Calculate final scores and results
             let results = try await calculateScoreUseCase.calculateGameResults(
                 gameSessionId: gameSession.id
             )
-            
+
             // Determine winner
             let gameWinner = try await calculateScoreUseCase.determineWinner(
                 gameSessionId: gameSession.id
             )
-            
+
             // Update final state
             currentGameSession = endedGameSession
             gameResults = results
             winner = gameWinner
             gamePhase = .finished
-            
+
             // Save the ended game session
             try await gameRepository.update(endedGameSession)
-            
         } catch {
             lastError = error
             throw GameCoordinatorError.gameEndFailed(error)
         }
     }
-    
+
     /// Reset the coordinator to initial state
     public func reset() {
         currentGameSession = nil
@@ -181,31 +182,31 @@ public class GameCoordinator {
         totalCoverage = 0.0
         clearError()
     }
-    
+
     /// Get the current score for a specific player
     /// - Parameter playerId: The ID of the player
     /// - Returns: The player's current score, or nil if player not found
     public func getPlayerScore(_ playerId: PlayerId) -> GameScore? {
-        return players.first { $0.id == playerId }?.score
+        players.first { $0.id == playerId }?.score
     }
-    
+
     /// Get all players sorted by score (highest first)
     public var playersByScore: [Player] {
-        return players.sorted { $0.score > $1.score }
+        players.sorted { $0.score > $1.score }
     }
-    
+
     /// Check if a specific player is active
     /// - Parameter playerId: The ID of the player
     /// - Returns: True if the player is active, false otherwise
     public func isPlayerActive(_ playerId: PlayerId) -> Bool {
-        return players.first { $0.id == playerId }?.isActive ?? false
+        players.first { $0.id == playerId }?.isActive ?? false
     }
-    
+
     // MARK: - Private Methods
-    
+
     private func checkGameEndConditions() async {
         guard let gameSession = currentGameSession else { return }
-        
+
         // Check if time is up or game should end for other reasons
         if gameSession.remainingTime <= 0 {
             do {
@@ -215,19 +216,23 @@ public class GameCoordinator {
             }
         }
     }
-    
+
     private func clearError() {
         lastError = nil
     }
 }
 
+// MARK: - GamePhase
+
 /// Game phases representing the current state of the game
 public enum GamePhase: String, CaseIterable {
-    case waiting = "waiting"
-    case connecting = "connecting"
-    case playing = "playing"
-    case finished = "finished"
+    case waiting
+    case connecting
+    case playing
+    case finished
 }
+
+// MARK: - GameCoordinatorError
 
 /// Errors that can occur in the GameCoordinator
 public enum GameCoordinatorError: Error, LocalizedError, Equatable {
@@ -235,20 +240,20 @@ public enum GameCoordinatorError: Error, LocalizedError, Equatable {
     case gameStartFailed(Error)
     case inkShotFailed(Error)
     case gameEndFailed(Error)
-    
+
     public var errorDescription: String? {
         switch self {
         case .noActiveGame:
             return "No active game session"
-        case .gameStartFailed(let error):
+        case let .gameStartFailed(error):
             return "Failed to start game: \(error.localizedDescription)"
-        case .inkShotFailed(let error):
+        case let .inkShotFailed(error):
             return "Failed to shoot ink: \(error.localizedDescription)"
-        case .gameEndFailed(let error):
+        case let .gameEndFailed(error):
             return "Failed to end game: \(error.localizedDescription)"
         }
     }
-    
+
     public static func == (lhs: GameCoordinatorError, rhs: GameCoordinatorError) -> Bool {
         switch (lhs, rhs) {
         case (.noActiveGame, .noActiveGame):
@@ -263,9 +268,10 @@ public enum GameCoordinatorError: Error, LocalizedError, Equatable {
     }
 }
 
-// MARK: - CustomStringConvertible
+// MARK: - GameCoordinator + CustomStringConvertible
+
 extension GameCoordinator: CustomStringConvertible {
     public var description: String {
-        return "GameCoordinator(phase: \(gamePhase), players: \(players.count), active: \(isGameActive))"
+        "GameCoordinator(phase: \(gamePhase), players: \(players.count), active: \(isGameActive))"
     }
 }

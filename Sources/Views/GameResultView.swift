@@ -1,24 +1,26 @@
-import SwiftUI
 import Domain
+import SwiftUI
+
+// MARK: - GameResultView
 
 /// Game result screen showing final scores and winner
 struct GameResultView: View {
     let gameState: GameState
     @Environment(\.dismiss) private var dismiss
-    
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
                     // Winner announcement
                     WinnerAnnouncementView(gameState: gameState)
-                    
+
                     // Final scores
                     FinalScoresView(gameState: gameState)
-                    
+
                     // Game statistics
                     GameStatisticsView(gameState: gameState)
-                    
+
                     // Action buttons
                     ActionButtonsView(gameState: gameState, onDismiss: {
                         dismiss()
@@ -39,10 +41,12 @@ struct GameResultView: View {
     }
 }
 
+// MARK: - WinnerAnnouncementView
+
 /// Winner announcement section
 struct WinnerAnnouncementView: View {
     let gameState: GameState
-    
+
     var body: some View {
         VStack(spacing: 16) {
             if let winner = gameState.winner {
@@ -50,31 +54,30 @@ struct WinnerAnnouncementView: View {
                 Image(systemName: "crown.fill")
                     .font(.system(size: 48))
                     .foregroundColor(.yellow)
-                
+
                 Text("勝者")
                     .font(.title2)
                     .foregroundColor(.secondary)
-                
+
                 Text(winner.name)
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .foregroundColor(winnerColor(for: winner))
-                
+
                 Text("おめでとうございます！")
                     .font(.headline)
                     .foregroundColor(.secondary)
-                
             } else {
                 // Draw
                 Image(systemName: "equal.circle.fill")
                     .font(.system(size: 48))
                     .foregroundColor(.orange)
-                
+
                 Text("引き分け")
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .foregroundColor(.orange)
-                
+
                 Text("素晴らしい戦いでした！")
                     .font(.headline)
                     .foregroundColor(.secondary)
@@ -84,7 +87,7 @@ struct WinnerAnnouncementView: View {
         .background(Color(.systemGray6))
         .cornerRadius(16)
     }
-    
+
     private func winnerColor(for player: Player) -> Color {
         switch player.color {
         case .blue:
@@ -95,20 +98,26 @@ struct WinnerAnnouncementView: View {
             return .green
         case .yellow:
             return .yellow
+        case .purple:
+            return .purple
+        case .orange:
+            return .orange
         }
     }
 }
 
+// MARK: - FinalScoresView
+
 /// Final scores section
 struct FinalScoresView: View {
     let gameState: GameState
-    
+
     var body: some View {
         VStack(spacing: 16) {
             Text("最終スコア")
                 .font(.title2)
                 .fontWeight(.semibold)
-            
+
             VStack(spacing: 12) {
                 ForEach(gameState.playersByScore, id: \.id) { player in
                     PlayerResultRow(
@@ -123,19 +132,21 @@ struct FinalScoresView: View {
         .background(Color(.systemGray6))
         .cornerRadius(16)
     }
-    
+
     private func getRank(for player: Player) -> Int {
         let sortedPlayers = gameState.playersByScore
         return (sortedPlayers.firstIndex { $0.id == player.id } ?? 0) + 1
     }
 }
 
+// MARK: - PlayerResultRow
+
 /// Individual player result row
 struct PlayerResultRow: View {
     let player: Player
     let isWinner: Bool
     let rank: Int
-    
+
     var body: some View {
         HStack {
             // Rank
@@ -144,34 +155,34 @@ struct PlayerResultRow: View {
                 .fontWeight(.bold)
                 .foregroundColor(.secondary)
                 .frame(width: 30)
-            
+
             // Player info
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
                     Text(player.name)
                         .font(.headline)
                         .fontWeight(isWinner ? .bold : .medium)
-                    
+
                     if isWinner {
                         Image(systemName: "crown.fill")
                             .font(.caption)
                             .foregroundColor(.yellow)
                     }
                 }
-                
-                Text("カバー率: \(Int(player.score.value * 100))%")
+
+                Text("カバー率: \(Int(player.score.paintedArea))%")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
-            
+
             Spacer()
-            
+
             // Score visualization
             Circle()
                 .fill(playerColor)
                 .frame(width: 40, height: 40)
                 .overlay(
-                    Text("\(Int(player.score.value * 100))%")
+                    Text("\(Int(player.score.paintedArea))%")
                         .font(.caption)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
@@ -185,7 +196,7 @@ struct PlayerResultRow: View {
                 .stroke(isWinner ? playerColor : Color.clear, lineWidth: 2)
         )
     }
-    
+
     private var playerColor: Color {
         switch player.color {
         case .blue:
@@ -196,20 +207,26 @@ struct PlayerResultRow: View {
             return .green
         case .yellow:
             return .yellow
+        case .purple:
+            return .purple
+        case .orange:
+            return .orange
         }
     }
 }
 
+// MARK: - GameStatisticsView
+
 /// Game statistics section
 struct GameStatisticsView: View {
     let gameState: GameState
-    
+
     var body: some View {
         VStack(spacing: 16) {
             Text("ゲーム統計")
                 .font(.title2)
                 .fontWeight(.semibold)
-            
+
             LazyVGrid(columns: [
                 GridItem(.flexible()),
                 GridItem(.flexible())
@@ -219,19 +236,19 @@ struct GameStatisticsView: View {
                     value: formatDuration(gameState.gameDuration),
                     icon: "clock"
                 )
-                
+
                 StatisticCard(
                     title: "総カバー率",
                     value: "\(gameState.coveragePercentage)%",
                     icon: "chart.pie"
                 )
-                
+
                 StatisticCard(
                     title: "プレイヤー数",
                     value: "\(gameState.players.count)人",
                     icon: "person.2"
                 )
-                
+
                 StatisticCard(
                     title: "ゲームフェーズ",
                     value: phaseDisplayName,
@@ -243,13 +260,13 @@ struct GameStatisticsView: View {
         .background(Color(.systemGray6))
         .cornerRadius(16)
     }
-    
+
     private func formatDuration(_ duration: TimeInterval) -> String {
         let minutes = Int(duration) / 60
         let seconds = Int(duration) % 60
         return "\(minutes):\(String(format: "%02d", seconds))"
     }
-    
+
     private var phaseDisplayName: String {
         switch gameState.currentPhase {
         case .waiting:
@@ -264,22 +281,24 @@ struct GameStatisticsView: View {
     }
 }
 
+// MARK: - StatisticCard
+
 /// Individual statistic card
 struct StatisticCard: View {
     let title: String
     let value: String
     let icon: String
-    
+
     var body: some View {
         VStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.title2)
                 .foregroundColor(.blue)
-            
+
             Text(value)
                 .font(.title3)
                 .fontWeight(.bold)
-            
+
             Text(title)
                 .font(.caption)
                 .foregroundColor(.secondary)
@@ -290,11 +309,13 @@ struct StatisticCard: View {
     }
 }
 
+// MARK: - ActionButtonsView
+
 /// Action buttons section
 struct ActionButtonsView: View {
     let gameState: GameState
     let onDismiss: () -> Void
-    
+
     var body: some View {
         VStack(spacing: 16) {
             Button(action: {
@@ -313,7 +334,7 @@ struct ActionButtonsView: View {
                 .background(Color.blue)
                 .cornerRadius(12)
             }
-            
+
             Button(action: {
                 onDismiss()
             }) {
@@ -329,7 +350,7 @@ struct ActionButtonsView: View {
                 .background(Color.blue.opacity(0.1))
                 .cornerRadius(12)
             }
-            
+
             // Share results button
             ShareLink(
                 item: generateShareText(),
@@ -349,28 +370,28 @@ struct ActionButtonsView: View {
             }
         }
     }
-    
+
     private func generateShareText() -> String {
         var text = "AR Splatoon ゲーム結果\n\n"
-        
+
         if let winner = gameState.winner {
             text += "🏆 勝者: \(winner.name)\n"
         } else {
             text += "🤝 引き分け\n"
         }
-        
+
         text += "\n📊 最終スコア:\n"
         for (index, player) in gameState.playersByScore.enumerated() {
             let rank = index + 1
-            text += "\(rank). \(player.name): \(Int(player.score.value * 100))%\n"
+            text += "\(rank). \(player.name): \(Int(player.score.paintedArea))%\n"
         }
-        
+
         text += "\n⏱️ ゲーム時間: \(formatDuration(gameState.gameDuration))"
         text += "\n📱 総カバー率: \(gameState.coveragePercentage)%"
-        
+
         return text
     }
-    
+
     private func formatDuration(_ duration: TimeInterval) -> String {
         let minutes = Int(duration) / 60
         let seconds = Int(duration) % 60
@@ -379,33 +400,31 @@ struct ActionButtonsView: View {
 }
 
 #Preview {
-    // Create sample game state for preview
-    let gameState = GameState()
-    
-    // Add sample players
-    let player1 = Player(
-        id: PlayerId(),
-        name: "プレイヤー1",
-        color: .blue,
-        position: Position3D(x: 0, y: 0, z: 0),
-        isActive: true,
-        score: GameScore(value: 0.65)
-    )
-    
-    let player2 = Player(
-        id: PlayerId(),
-        name: "プレイヤー2",
-        color: .red,
-        position: Position3D(x: 2, y: 0, z: 0),
-        isActive: true,
-        score: GameScore(value: 0.35)
-    )
-    
-    // Set up game state
-    gameState.players = [player1, player2]
-    gameState.winner = player1
-    gameState.currentPhase = .finished
-    gameState.totalCoverage = 1.0
-    
-    return GameResultView(gameState: gameState)
+    GameResultView(gameState: {
+        // Create sample game state for preview
+        let gameState = GameState()
+
+        // Add sample players
+        let player1 = Player(
+            id: PlayerId(),
+            name: "プレイヤー1",
+            color: .blue,
+            position: Position3D(x: 0, y: 0, z: 0)
+        ).updateScore(GameScore(paintedArea: 65.0))
+
+        let player2 = Player(
+            id: PlayerId(),
+            name: "プレイヤー2",
+            color: .red,
+            position: Position3D(x: 2, y: 0, z: 0)
+        ).updateScore(GameScore(paintedArea: 35.0))
+
+        // Set up game state
+        gameState.players = [player1, player2]
+        gameState.winner = player1
+        gameState.currentPhase = .finished
+        gameState.totalCoverage = 1.0
+
+        return gameState
+    }())
 }

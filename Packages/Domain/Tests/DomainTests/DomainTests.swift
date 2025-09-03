@@ -1,5 +1,5 @@
-import Testing
 @testable import Domain
+import Testing
 
 struct DomainTests {
     @Test("Domain package version is accessible")

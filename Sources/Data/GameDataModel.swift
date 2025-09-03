@@ -1,5 +1,7 @@
-import SwiftData
 import Foundation
+import SwiftData
+
+// MARK: - GameHistory
 
 @Model
 class GameHistory {
@@ -9,7 +11,7 @@ class GameHistory {
     var winner: String
     var playerScore: Float
     var opponentScore: Float
-    
+
     init(id: UUID = UUID(), date: Date = Date(), duration: TimeInterval, winner: String, playerScore: Float, opponentScore: Float) {
         self.id = id
         self.date = date
@@ -20,6 +22,8 @@ class GameHistory {
     }
 }
 
+// MARK: - PlayerProfile
+
 @Model
 class PlayerProfile {
     var name: String
@@ -27,15 +31,15 @@ class PlayerProfile {
     var wins: Int
     var totalPaintedArea: Float
     var createdAt: Date
-    
+
     init(name: String, totalGames: Int = 0, wins: Int = 0, totalPaintedArea: Float = 0) {
         self.name = name
         self.totalGames = totalGames
         self.wins = wins
         self.totalPaintedArea = totalPaintedArea
-        self.createdAt = Date()
+        createdAt = Date()
     }
-    
+
     var winRate: Double {
         guard totalGames > 0 else { return 0.0 }
         return Double(wins) / Double(totalGames)
