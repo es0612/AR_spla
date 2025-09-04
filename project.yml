@@ -59,6 +59,10 @@ targets:
     dependencies:
       - target: ARSplatoonGame
       - package: TestSupport
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: true
+        PRODUCT_BUNDLE_IDENTIFIER: com.arsplatoon.game.tests
       
   ARSplatoonGameUITests:
     type: bundle.ui-testing
@@ -67,6 +71,10 @@ targets:
       - path: Tests/ARSplatoonGameUITests
     dependencies:
       - target: ARSplatoonGame
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: true
+        PRODUCT_BUNDLE_IDENTIFIER: com.arsplatoon.game.uitests
 
 packages:
   Domain:

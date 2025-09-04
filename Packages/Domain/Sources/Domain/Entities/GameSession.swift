@@ -111,6 +111,38 @@ public struct GameSession: Identifiable, Equatable, Codable {
         )
     }
 
+    /// Remove an ink spot from the game session
+    public func removeInkSpot(_ inkSpotId: InkSpotId) -> GameSession {
+        let newInkSpots = inkSpots.filter { $0.id != inkSpotId }
+
+        return GameSession(
+            id: id,
+            players: players,
+            duration: duration,
+            status: status,
+            inkSpots: newInkSpots,
+            startedAt: startedAt,
+            endedAt: endedAt
+        )
+    }
+
+    /// Update an ink spot in the game session
+    public func updateInkSpot(_ updatedInkSpot: InkSpot) -> GameSession {
+        let newInkSpots = inkSpots.map { inkSpot in
+            inkSpot.id == updatedInkSpot.id ? updatedInkSpot : inkSpot
+        }
+
+        return GameSession(
+            id: id,
+            players: players,
+            duration: duration,
+            status: status,
+            inkSpots: newInkSpots,
+            startedAt: startedAt,
+            endedAt: endedAt
+        )
+    }
+
     /// Update a player in the game session
     public func updatePlayer(_ updatedPlayer: Player) -> GameSession {
         let newPlayers = players.map { player in

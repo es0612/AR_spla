@@ -8,16 +8,19 @@ public struct ShootInkUseCase {
     private let gameRepository: GameRepository
     private let playerRepository: PlayerRepository
     private let gameRuleService: GameRuleService
+    private let collisionDetectionService: CollisionDetectionService
 
     /// Create a ShootInkUseCase
     public init(
         gameRepository: GameRepository,
         playerRepository: PlayerRepository,
-        gameRuleService: GameRuleService = GameRuleService()
+        gameRuleService: GameRuleService = GameRuleService(),
+        collisionDetectionService: CollisionDetectionService = CollisionDetectionService()
     ) {
         self.gameRepository = gameRepository
         self.playerRepository = playerRepository
         self.gameRuleService = gameRuleService
+        self.collisionDetectionService = collisionDetectionService
     }
 
     /// Execute the shoot ink use case
@@ -62,23 +65,32 @@ public struct ShootInkUseCase {
         // Add ink spot to game session
         let updatedGameSession = gameSession.addInkSpot(inkSpot)
 
-        // Check for player collisions with existing ink spots
-        let updatedPlayers = try await checkPlayerCollisions(
+        // Check for player collisions and ink spot overlaps
+        let collisionResults = try await processCollisions(
             in: updatedGameSession,
             newInkSpot: inkSpot
         )
 
-        // Update game session with potentially affected players
+        // Update game session with collision results
         var finalGameSession = updatedGameSession
-        for updatedPlayer in updatedPlayers {
+
+        // Update affected players
+        for updatedPlayer in collisionResults.affectedPlayers {
             finalGameSession = finalGameSession.updatePlayer(updatedPlayer)
         }
+
+        // Handle ink spot merges and conflicts
+        finalGameSession = processInkSpotInteractions(
+            gameSession: finalGameSession,
+            newInkSpot: inkSpot,
+            overlaps: collisionResults.inkSpotOverlaps
+        )
 
         // Save updated game session
         try await gameRepository.update(finalGameSession)
 
         // Save updated players
-        for updatedPlayer in updatedPlayers {
+        for updatedPlayer in collisionResults.affectedPlayers {
             try await playerRepository.update(updatedPlayer)
         }
 
@@ -129,26 +141,137 @@ public struct ShootInkUseCase {
         }
     }
 
-    private func checkPlayerCollisions(
+    private func processCollisions(
         in gameSession: GameSession,
         newInkSpot: InkSpot
-    ) async throws -> [Player] {
-        var updatedPlayers: [Player] = []
+    ) async throws -> CollisionResults {
+        var affectedPlayers: [Player] = []
 
+        // Check player collisions with detailed effects
         for player in gameSession.players {
-            // Skip the player who shot the ink
-            guard player.id != newInkSpot.ownerId else { continue }
+            let effect = collisionDetectionService.calculatePlayerCollisionEffect(player, with: newInkSpot)
 
-            // Check collision with new ink spot
-            if gameRuleService.checkPlayerInkCollision(player, with: newInkSpot) {
-                // Deactivate the player temporarily
-                let deactivatedPlayer = player.deactivate()
-                updatedPlayers.append(deactivatedPlayer)
+            if effect.isStunned {
+                // Apply collision effect to player
+                let affectedPlayer = applyCollisionEffect(to: player, effect: effect)
+                affectedPlayers.append(affectedPlayer)
             }
         }
 
-        return updatedPlayers
+        // Check ink spot overlaps
+        let inkSpotOverlaps = collisionDetectionService.findOverlappingInkSpots(
+            newInkSpot,
+            in: gameSession.inkSpots
+        )
+
+        return CollisionResults(
+            affectedPlayers: affectedPlayers,
+            inkSpotOverlaps: inkSpotOverlaps
+        )
     }
+
+    private func applyCollisionEffect(to player: Player, effect: PlayerCollisionEffect) -> Player {
+        switch effect {
+        case .none:
+            return player
+        case .stunned:
+            // Deactivate player (in a real implementation, you might want to track stun duration)
+            return player.deactivate()
+        }
+    }
+
+    private func processInkSpotInteractions(
+        gameSession: GameSession,
+        newInkSpot: InkSpot,
+        overlaps: [(InkSpot, InkSpotOverlapResult)]
+    ) -> GameSession {
+        var updatedGameSession = gameSession
+
+        for (overlappingSpot, overlapResult) in overlaps {
+            if overlappingSpot.color == newInkSpot.color,
+               let mergedSize = overlapResult.mergedSize {
+                // Merge same color ink spots
+                updatedGameSession = mergeSameColorInkSpots(
+                    gameSession: updatedGameSession,
+                    spot1: newInkSpot,
+                    spot2: overlappingSpot,
+                    mergedSize: mergedSize
+                )
+            } else {
+                // Handle different color conflicts
+                updatedGameSession = handleInkSpotConflict(
+                    gameSession: updatedGameSession,
+                    newSpot: newInkSpot,
+                    existingSpot: overlappingSpot,
+                    overlapResult: overlapResult
+                )
+            }
+        }
+
+        return updatedGameSession
+    }
+
+    private func mergeSameColorInkSpots(
+        gameSession: GameSession,
+        spot1: InkSpot,
+        spot2: InkSpot,
+        mergedSize: Float
+    ) -> GameSession {
+        // Create merged ink spot at center position
+        let centerPosition = Position3D(
+            x: (spot1.position.x + spot2.position.x) / 2,
+            y: (spot1.position.y + spot2.position.y) / 2,
+            z: (spot1.position.z + spot2.position.z) / 2
+        )
+
+        let mergedSpot = InkSpot(
+            id: InkSpotId(),
+            position: centerPosition,
+            color: spot1.color,
+            size: min(mergedSize, InkSpot.maxSize),
+            ownerId: spot1.ownerId
+        )
+
+        // Remove original spots and add merged spot
+        return gameSession
+            .removeInkSpot(spot2.id)
+            .addInkSpot(mergedSpot)
+    }
+
+    private func handleInkSpotConflict(
+        gameSession: GameSession,
+        newSpot _: InkSpot,
+        existingSpot: InkSpot,
+        overlapResult _: InkSpotOverlapResult
+    ) -> GameSession {
+        // For different colors, reduce the size of the existing spot
+        let reductionFactor: Float = 0.8
+        let reducedSize = existingSpot.size * reductionFactor
+
+        if reducedSize >= InkSpot.minSize {
+            let reducedSpot = InkSpot(
+                id: existingSpot.id,
+                position: existingSpot.position,
+                color: existingSpot.color,
+                size: reducedSize,
+                ownerId: existingSpot.ownerId,
+                createdAt: existingSpot.createdAt
+            )
+
+            return gameSession.updateInkSpot(reducedSpot)
+        } else {
+            // Remove the spot if it becomes too small
+            return gameSession.removeInkSpot(existingSpot.id)
+        }
+    }
+}
+
+// MARK: - CollisionResults
+
+/// Results of collision detection when shooting ink
+private struct CollisionResults {
+    let affectedPlayers: [Player]
+    let inkSpotOverlaps: [(InkSpot, InkSpotOverlapResult)]
 }
 
 // MARK: - ShootInkError

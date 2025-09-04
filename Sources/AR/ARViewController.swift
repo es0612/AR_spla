@@ -13,6 +13,9 @@ class ARViewController: UIViewController {
     private var arGameCoordinator: ARGameCoordinator!
     private weak var gameState: GameState?
 
+    // Player shot tracking for cooldown
+    private var playerLastShotTimes: [PlayerId: Date] = [:]
+
     // Delegates
     weak var delegate: ARViewControllerDelegate?
 
@@ -58,15 +61,47 @@ class ARViewController: UIViewController {
               gameState.isGameActive,
               let currentPlayer = gameState.players.first else { return }
 
+        // Check if player can shoot ink (cooldown, active state, etc.)
+        guard canPlayerShootInk(currentPlayer) else { return }
+
         // Use AR game coordinator to handle tap
         let success = arGameCoordinator.handleTap(at: location, for: currentPlayer)
 
         if success {
-            // Update game state
-            Task { @MainActor in
-                // The actual ink spot creation is handled by the coordinator delegate
+            // Update last shot time for cooldown
+            updatePlayerLastShotTime(currentPlayer.id)
+
+            // Provide haptic feedback
+            provideHapticFeedback()
+        }
+    }
+
+    /// Check if player can shoot ink (considering cooldown and state)
+    private func canPlayerShootInk(_ player: Player) -> Bool {
+        // Check if player is active
+        guard player.isActive else { return false }
+
+        // Check cooldown (0.5 seconds between shots)
+        let cooldownDuration: TimeInterval = 0.5
+        if let lastShotTime = playerLastShotTimes[player.id] {
+            let timeSinceLastShot = Date().timeIntervalSince(lastShotTime)
+            if timeSinceLastShot < cooldownDuration {
+                return false
             }
         }
+
+        return true
+    }
+
+    /// Update player's last shot time
+    private func updatePlayerLastShotTime(_ playerId: PlayerId) {
+        playerLastShotTimes[playerId] = Date()
+    }
+
+    /// Provide haptic feedback for ink shooting
+    private func provideHapticFeedback() {
+        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+        impactFeedback.impactOccurred()
     }
 
     // MARK: - Private Methods
@@ -126,31 +161,112 @@ extension ARViewController: ARGameCoordinatorDelegate {
     }
 
     func arGameCoordinatorDidLoseGameField(_ coordinator: ARGameCoordinator) {
-        delegate?.arViewController(self, didLoseGameField: coordinator.currentFieldAnchor ?? ARPlaneAnchor())
+        if let anchor = coordinator.currentFieldAnchor {
+            delegate?.arViewController(self, didLoseGameField: anchor)
+        }
     }
 
     func arGameCoordinator(_: ARGameCoordinator, didShootInk inkSpot: InkSpot, at position: Position3D) {
         delegate?.arViewController(self, didShootInkAt: position, color: inkSpot.color)
 
-        // Update game state
+        // Update game state and handle network synchronization
         Task { @MainActor in
             await gameState?.shootInk(
                 playerId: inkSpot.ownerId,
                 at: position,
                 size: inkSpot.size
             )
+
+            // Notify delegate for network synchronization
+            delegate?.arViewController(self, didAddInkSpot: position, color: inkSpot.color)
         }
+    }
+
+    func arGameCoordinator(_: ARGameCoordinator, didDetectPlayerCollision playerId: PlayerId, at position: Position3D, effect: PlayerCollisionEffect) {
+        delegate?.arViewController(self, didDetectPlayerCollision: playerId, at: position, effect: effect)
+
+        // Handle player collision effects
+        Task { @MainActor in
+            await handlePlayerCollisionEffects(playerId: playerId, at: position, effect: effect)
+        }
+    }
+
+    func arGameCoordinator(_: ARGameCoordinator, didProcessInkSpotOverlap inkSpot: InkSpot, overlaps: [(InkSpot, InkSpotOverlapResult)]) {
+        // Handle ink spot overlap processing
+        Task { @MainActor in
+            await gameState?.handleInkSpotOverlap(inkSpot: inkSpot, overlaps: overlaps)
+        }
+
+        // Notify delegate
+        delegate?.arViewController(self, didProcessInkSpotOverlap: inkSpot, overlaps: overlaps)
+    }
+
+    /// Handle the effects of a player collision with ink
+    private func handlePlayerCollisionEffects(playerId: PlayerId, at position: Position3D, effect: PlayerCollisionEffect) async {
+        // Provide haptic feedback for collision
+        let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
+        impactFeedback.impactOccurred()
+
+        // Update game state with collision effect
+        await gameState?.handlePlayerCollision(playerId: playerId, effect: effect)
+
+        // Could add visual effects here (screen flash, particle effects, etc.)
+        print("Player \(playerId) hit by ink at position \(position) with effect: \(effect)")
     }
 
     func arGameCoordinator(_: ARGameCoordinator, didUpdateTrackingQuality quality: ARTrackingQuality.TrackingQuality) {
         // Optional: Handle tracking quality updates
-        if let message = quality.userMessage {
+        if quality.userMessage != nil {
             // Could show tracking quality message to user
         }
     }
 
     func arGameCoordinator(_: ARGameCoordinator, didFailWithError error: Error) {
         delegate?.arViewController(self, didFailWithError: error)
+    }
+
+    func arGameCoordinator(_ coordinator: ARGameCoordinator, didUpdatePlayerPosition position: Position3D) {
+        // Update current player position in game state
+        Task { @MainActor in
+            guard let gameState = gameState,
+                  let currentPlayer = gameState.players.first else { return }
+
+            // Create updated player with new position
+            let updatedPlayer = Player(
+                id: currentPlayer.id,
+                name: currentPlayer.name,
+                color: currentPlayer.color,
+                position: position
+            )
+
+            // Update player in game state
+            if let playerIndex = gameState.players.firstIndex(where: { $0.id == currentPlayer.id }) {
+                gameState.players[playerIndex] = updatedPlayer
+            }
+
+            // Update collision detector with new position
+            coordinator.updatePlayer(updatedPlayer)
+        }
+    }
+
+    func arGameCoordinator(_: ARGameCoordinator, didMergeInkSpots originalSpots: [InkSpot], into mergedSpot: InkSpot) {
+        // Handle ink spot merging
+        Task { @MainActor in
+            await gameState?.handleInkSpotMerge(originalSpots: originalSpots, mergedSpot: mergedSpot)
+        }
+
+        // Notify delegate
+        delegate?.arViewController(self, didMergeInkSpots: originalSpots, into: mergedSpot)
+    }
+
+    func arGameCoordinator(_: ARGameCoordinator, didCreateInkConflict newSpot: InkSpot, with existingSpot: InkSpot, overlapArea: Float) {
+        // Handle ink spot conflicts
+        Task { @MainActor in
+            await gameState?.handleInkSpotConflict(newSpot: newSpot, existingSpot: existingSpot, overlapArea: overlapArea)
+        }
+
+        // Notify delegate
+        delegate?.arViewController(self, didCreateInkConflict: newSpot, with: existingSpot, overlapArea: overlapArea)
     }
 }
 
@@ -172,4 +288,12 @@ protocol ARViewControllerDelegate: AnyObject {
     func arViewController(_ controller: ARViewController, didDetectCollision playerId: PlayerId, at position: Position3D)
 
     func arViewController(_ controller: ARViewController, didFailWithError error: Error)
+
+    // MARK: - Collision Detection Methods
+
+    func arViewController(_ controller: ARViewController, didDetectPlayerCollision playerId: PlayerId, at position: Position3D, effect: PlayerCollisionEffect)
+    func arViewController(_ controller: ARViewController, didProcessInkSpotOverlap inkSpot: InkSpot, overlaps: [(InkSpot, InkSpotOverlapResult)])
+    func arViewController(_ controller: ARViewController, didMergeInkSpots originalSpots: [InkSpot], into mergedSpot: InkSpot)
+    func arViewController(_ controller: ARViewController, didCreateInkConflict newSpot: InkSpot, with existingSpot: InkSpot, overlapArea: Float)
+    func arViewController(_ controller: ARViewController, didUpdatePlayerPosition position: Position3D)
 }

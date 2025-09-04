@@ -1,6 +1,7 @@
 import ARKit
 import Domain
 import Foundation
+import RealityKit
 
 // MARK: - ARError
 
@@ -51,7 +52,7 @@ enum ARError: Error, LocalizedError {
 // MARK: - ARSessionState
 
 /// AR session state
-enum ARSessionState {
+public enum ARSessionState {
     case notStarted
     case starting
     case running
@@ -72,7 +73,7 @@ enum ARSessionState {
 // MARK: - GameFieldState
 
 /// Game field state
-enum GameFieldState {
+public enum GameFieldState: Equatable {
     case notDetected
     case detecting
     case detected(ARAnchor)
@@ -195,7 +196,7 @@ enum ARCoordinateSystem {
 // MARK: - ARTrackingQuality
 
 /// AR tracking quality assessment
-enum ARTrackingQuality {
+public enum ARTrackingQuality {
     static func assess(_ frame: ARFrame) -> TrackingQuality {
         let camera = frame.camera
 
@@ -209,7 +210,7 @@ enum ARTrackingQuality {
         }
     }
 
-    enum TrackingQuality {
+    public enum TrackingQuality {
         case good
         case limited(ARCamera.TrackingState.Reason)
         case poor

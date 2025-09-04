@@ -84,7 +84,7 @@ public class ARInkRenderer {
 
     /// Remove all ink spots from the scene
     public func clearAllInkSpots() {
-        for (id, anchor) in inkSpotAnchors {
+        for (_, anchor) in inkSpotAnchors {
             arView.scene.removeAnchor(anchor)
         }
 
@@ -134,11 +134,8 @@ public class ARInkRenderer {
         material.color = .init(tint: uiColor)
 
         // Set material properties for ink-like appearance
-        material.roughness = .init(floatLiteral: 0.8)
-        material.metallic = .init(floatLiteral: 0.1)
-
-        // Add slight emission for visibility
-        material.emissiveColor = .init(color: uiColor.withAlphaComponent(0.2))
+        material.roughness = .init(floatLiteral: 0.6) // Slightly more reflective
+        material.metallic = .init(floatLiteral: 0.2) // Slight metallic look
 
         return material
     }
@@ -149,21 +146,48 @@ public class ARInkRenderer {
     }
 
     private func animateInkSpotAppearance(_ entity: ModelEntity) {
-        // Start with small scale
+        // Start with small scale and slight upward position
         entity.transform.scale = SIMD3<Float>(0.1, 0.1, 0.1)
+        let originalTranslation = entity.transform.translation
+        entity.transform.translation = SIMD3<Float>(
+            originalTranslation.x,
+            originalTranslation.y + 0.1, // Start slightly above
+            originalTranslation.z
+        )
 
-        // Create scale animation
+        // Create combined scale and position animation
         let scaleAnimation = FromToByAnimation<Transform>(
-            from: Transform(scale: SIMD3<Float>(0.1, 0.1, 0.1)),
-            to: Transform(scale: SIMD3<Float>(1.0, 1.0, 1.0)),
-            duration: 0.3,
+            from: Transform(
+                scale: SIMD3<Float>(0.1, 0.1, 0.1),
+                translation: SIMD3<Float>(originalTranslation.x, originalTranslation.y + 0.1, originalTranslation.z)
+            ),
+            to: Transform(
+                scale: SIMD3<Float>(1.0, 1.0, 1.0),
+                translation: originalTranslation
+            ),
+            duration: 0.4,
             timing: .easeOut,
             bindTarget: .transform
         )
 
-        // Apply animation
+        // Apply animation with bounce effect
         if let animationResource = try? AnimationResource.generate(with: scaleAnimation) {
             entity.playAnimation(animationResource)
+        }
+
+        // Add slight rotation for dynamic effect
+        let rotationAnimation = FromToByAnimation<Transform>(
+            from: Transform(rotation: simd_quatf(angle: 0, axis: SIMD3<Float>(0, 1, 0))),
+            to: Transform(rotation: simd_quatf(angle: Float.pi * 0.1, axis: SIMD3<Float>(0, 1, 0))),
+            duration: 0.2,
+            timing: .easeInOut,
+            bindTarget: .transform
+        )
+
+        if let rotationResource = try? AnimationResource.generate(with: rotationAnimation) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                entity.playAnimation(rotationResource)
+            }
         }
     }
 

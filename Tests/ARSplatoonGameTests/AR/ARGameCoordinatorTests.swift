@@ -78,6 +78,50 @@ final class ARGameCoordinatorTests: XCTestCase {
         let expectedSize = CGSize(width: 4.0, height: 4.0)
         XCTAssertEqual(coordinator.fieldSize, expectedSize)
     }
+    
+    func testUpdatePlayer() {
+        let player = Player(
+            id: PlayerId(),
+            name: "TestPlayer",
+            color: .red,
+            position: Position3D(x: 0, y: 0, z: 0)
+        )
+        
+        // Should not crash
+        coordinator.updatePlayer(player)
+        XCTAssertTrue(true)
+    }
+    
+    func testRemovePlayer() {
+        let playerId = PlayerId()
+        
+        // Should not crash
+        coordinator.removePlayer(playerId)
+        XCTAssertTrue(true)
+    }
+    
+    func testCheckPlayerCollisions() {
+        let player = Player(
+            id: PlayerId(),
+            name: "TestPlayer",
+            color: .red,
+            position: Position3D(x: 0, y: 0, z: 0)
+        )
+        
+        let collisions = coordinator.checkPlayerCollisions(player)
+        
+        // Should return empty array when no ink spots are present
+        XCTAssertTrue(collisions.isEmpty)
+    }
+    
+    func testFindInkSpotsAt() {
+        let position = Position3D(x: 0, y: 0, z: 0)
+        
+        let inkSpots = coordinator.findInkSpotsAt(position)
+        
+        // Should return empty array when no ink spots are present
+        XCTAssertTrue(inkSpots.isEmpty)
+    }
 }
 
 // MARK: - Mock Delegate
@@ -89,6 +133,15 @@ class MockARGameCoordinatorDelegate: ARGameCoordinatorDelegate {
     var didSetupGameFieldCalled = false
     var didShootInkCalled = false
     var didFailWithErrorCalled = false
+    var didDetectPlayerCollisionCalled = false
+    var didProcessInkSpotOverlapCalled = false
+    var didMergeInkSpotsCalled = false
+    var didCreateInkConflictCalled = false
+    
+    var lastPlayerCollisionEffect: PlayerCollisionEffect?
+    var lastOverlapResults: [(InkSpot, InkSpotOverlapResult)]?
+    var lastMergedSpots: [InkSpot]?
+    var lastConflictOverlapArea: Float?
     
     func arGameCoordinatorDidStartSession(_ coordinator: ARGameCoordinator) {
         didStartSessionCalled = true
@@ -118,5 +171,26 @@ class MockARGameCoordinatorDelegate: ARGameCoordinatorDelegate {
     
     func arGameCoordinator(_ coordinator: ARGameCoordinator, didFailWithError error: Error) {
         didFailWithErrorCalled = true
+    }
+    
+    // Collision detection methods
+    func arGameCoordinator(_ coordinator: ARGameCoordinator, didDetectPlayerCollision playerId: PlayerId, at position: Position3D, effect: PlayerCollisionEffect) {
+        didDetectPlayerCollisionCalled = true
+        lastPlayerCollisionEffect = effect
+    }
+    
+    func arGameCoordinator(_ coordinator: ARGameCoordinator, didProcessInkSpotOverlap inkSpot: InkSpot, overlaps: [(InkSpot, InkSpotOverlapResult)]) {
+        didProcessInkSpotOverlapCalled = true
+        lastOverlapResults = overlaps
+    }
+    
+    func arGameCoordinator(_ coordinator: ARGameCoordinator, didMergeInkSpots originalSpots: [InkSpot], into mergedSpot: InkSpot) {
+        didMergeInkSpotsCalled = true
+        lastMergedSpots = originalSpots
+    }
+    
+    func arGameCoordinator(_ coordinator: ARGameCoordinator, didCreateInkConflict newSpot: InkSpot, with existingSpot: InkSpot, overlapArea: Float) {
+        didCreateInkConflictCalled = true
+        lastConflictOverlapArea = overlapArea
     }
 }

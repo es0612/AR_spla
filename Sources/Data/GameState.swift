@@ -83,9 +83,62 @@ public class GameState {
         do {
             try await gameCoordinator.shootInk(playerId: playerId, at: position, size: size)
             updateStateFromCoordinator()
+
+            // Send network message for multiplayer synchronization
+            await sendInkShotMessage(playerId: playerId, position: position, size: size)
         } catch {
             handleError(error)
         }
+    }
+
+    /// Handle ink shot from network (remote player)
+    @MainActor
+    public func handleRemoteInkShot(playerId: PlayerId, at position: Position3D, size: Float) async {
+        do {
+            // Add ink spot without triggering network message
+            try await gameCoordinator.shootInk(playerId: playerId, at: position, size: size)
+            updateStateFromCoordinator()
+        } catch {
+            handleError(error)
+        }
+    }
+
+    /// Handle player collision with ink
+    @MainActor
+    public func handlePlayerInkCollision(playerId: PlayerId, at position: Position3D) async {
+        // Find the player and temporarily deactivate them
+        if let playerIndex = players.firstIndex(where: { $0.id == playerId }) {
+            let player = players[playerIndex]
+
+            // Only deactivate if player is currently active
+            guard player.isActive else { return }
+
+            // Deactivate player
+            let deactivatedPlayer = player.deactivate()
+            players[playerIndex] = deactivatedPlayer
+
+            print("Player \(playerId) deactivated due to ink collision at \(position)")
+
+            // Reactivate player after 3 seconds
+            Task {
+                try? await Task.sleep(nanoseconds: 3_000_000_000) // 3 seconds
+
+                await MainActor.run {
+                    if let currentIndex = self.players.firstIndex(where: { $0.id == playerId }) {
+                        let reactivatedPlayer = self.players[currentIndex].activate()
+                        self.players[currentIndex] = reactivatedPlayer
+                        print("Player \(playerId) reactivated")
+                    }
+                }
+            }
+        }
+    }
+
+    /// Send ink shot message to network
+    private func sendInkShotMessage(playerId: PlayerId, position: Position3D, size: Float) async {
+        // This will be implemented when network integration is added
+        // For now, this is a placeholder for the network synchronization
+        print("Sending ink shot message: player=\(playerId), position=\(position), size=\(size)")
     }
 
     /// End the current game
@@ -145,6 +198,77 @@ public class GameState {
         if gameDuration == 0 { gameDuration = 180 }
         soundEnabled = UserDefaults.standard.bool(forKey: "soundEnabled")
         hapticEnabled = UserDefaults.standard.bool(forKey: "hapticEnabled")
+    }
+
+    // MARK: - Collision Handling
+
+    /// Handle player collision with ink spot
+    @MainActor
+    public func handlePlayerCollision(playerId: PlayerId, effect: PlayerCollisionEffect) async {
+        guard let playerIndex = players.firstIndex(where: { $0.id == playerId }) else { return }
+        let player = players[playerIndex]
+
+        switch effect {
+        case .none:
+            // No effect, player continues normally
+            break
+
+        case let .stunned(duration, speedReduction):
+            print("Player \(playerId) stunned for \(duration)s with \(speedReduction * 100)% speed reduction")
+
+            // Deactivate player temporarily
+            let stunnedPlayer = player.deactivate()
+            players[playerIndex] = stunnedPlayer
+
+            // Provide haptic feedback
+            if hapticEnabled {
+                let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
+                impactFeedback.impactOccurred()
+            }
+
+            // Reactivate player after stun duration
+            Task {
+                try? await Task.sleep(nanoseconds: UInt64(duration * 1_000_000_000))
+
+                await MainActor.run {
+                    if let currentIndex = self.players.firstIndex(where: { $0.id == playerId }) {
+                        let reactivatedPlayer = self.players[currentIndex].activate()
+                        self.players[currentIndex] = reactivatedPlayer
+                        print("Player \(playerId) reactivated after stun")
+                    }
+                }
+            }
+        }
+
+        // Update game state
+        updateStateFromCoordinator()
+    }
+
+    /// Handle ink spot overlap
+    @MainActor
+    public func handleInkSpotOverlap(inkSpot _: InkSpot, overlaps: [(InkSpot, InkSpotOverlapResult)]) async {
+        print("Ink spot overlap detected: \(overlaps.count) overlapping spots")
+
+        // Update game state
+        updateStateFromCoordinator()
+    }
+
+    /// Handle ink spot merge
+    @MainActor
+    public func handleInkSpotMerge(originalSpots: [InkSpot], mergedSpot _: InkSpot) async {
+        print("Ink spots merged: \(originalSpots.count) spots into 1")
+
+        // Update game state
+        updateStateFromCoordinator()
+    }
+
+    /// Handle ink spot conflict
+    @MainActor
+    public func handleInkSpotConflict(newSpot _: InkSpot, existingSpot _: InkSpot, overlapArea: Float) async {
+        print("Ink spot conflict detected with overlap area: \(overlapArea)")
+
+        // Update game state
+        updateStateFromCoordinator()
     }
 
     // MARK: - Error Handling
