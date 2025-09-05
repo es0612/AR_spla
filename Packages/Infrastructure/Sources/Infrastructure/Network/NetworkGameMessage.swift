@@ -26,6 +26,7 @@ public struct NetworkGameMessage: Codable {
         case gameEnd = "game_end"
         case playerPosition = "player_position"
         case inkShot = "ink_shot"
+        case inkBatch = "ink_batch"
         case playerHit = "player_hit"
         case scoreUpdate = "score_update"
         case gameState = "game_state"

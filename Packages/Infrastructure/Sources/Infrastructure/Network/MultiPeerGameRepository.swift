@@ -10,7 +10,7 @@ public class MultiPeerGameRepository: NSObject, GameRepository {
     // MARK: - Properties
 
     private let serviceType = "ar-splatoon"
-    private let peerID: MCPeerID
+    public let peerID: MCPeerID
     private let session: MCSession
     private let advertiser: MCNearbyServiceAdvertiser
     private let browser: MCNearbyServiceBrowser
@@ -18,11 +18,20 @@ public class MultiPeerGameRepository: NSObject, GameRepository {
     private var gameSessions: [GameSessionId: GameSession] = [:]
     private var messageHandlers: [NetworkGameMessage.MessageType: (NetworkGameMessage) -> Void] = [:]
 
+    // MARK: - Synchronization Services
+
+    public private(set) var synchronizationService: GameSynchronizationService?
+    public private(set) var connectionRecoveryService: ConnectionRecoveryService?
+    public private(set) var inkBatchProcessor: InkDataBatchProcessor?
+    public private(set) var sessionManager: MultiplayerSessionManager?
+    public private(set) var errorHandler: GameSyncErrorHandler?
+
     // MARK: - State Properties
 
     public private(set) var connectionState: ConnectionState = .disconnected {
         didSet {
-            // Notify observers if needed
+            // Notify connection state changes
+            NotificationCenter.default.post(name: .connectionStateChanged, object: nil)
         }
     }
 
@@ -52,12 +61,14 @@ public class MultiPeerGameRepository: NSObject, GameRepository {
         setupAdvertiser()
         setupBrowser()
         setupMessageHandlers()
+        setupSynchronizationServices()
     }
 
     deinit {
         stopAdvertising()
         stopBrowsing()
         session.disconnect()
+        synchronizationService?.stopSynchronization()
     }
 
     // MARK: - Setup Methods
@@ -84,6 +95,31 @@ public class MultiPeerGameRepository: NSObject, GameRepository {
         messageHandlers[.playerHit] = handlePlayerHitMessage
         messageHandlers[.scoreUpdate] = handleScoreUpdateMessage
         messageHandlers[.gameState] = handleGameStateMessage
+        messageHandlers[.inkBatch] = handleInkBatchMessage
+    }
+
+    private func setupSynchronizationServices() {
+        synchronizationService = GameSynchronizationService(gameRepository: self)
+        connectionRecoveryService = ConnectionRecoveryService(gameRepository: self)
+
+        inkBatchProcessor = InkDataBatchProcessor()
+        inkBatchProcessor?.onBatchReady = { [weak self] inkSpots in
+            self?.sendInkBatch(inkSpots)
+        }
+
+        // Setup session manager and error handler
+        if let syncService = synchronizationService,
+           let recoveryService = connectionRecoveryService {
+            sessionManager = MultiplayerSessionManager(
+                gameRepository: self,
+                synchronizationService: syncService,
+                recoveryService: recoveryService
+            )
+
+            errorHandler = GameSyncErrorHandler(
+                recoveryService: recoveryService
+            )
+        }
     }
 
     // MARK: - Public Methods
@@ -149,6 +185,29 @@ public class MultiPeerGameRepository: NSObject, GameRepository {
         } catch {
             throw NetworkError.sendingFailed
         }
+    }
+
+    /// Send ink batch efficiently
+    private func sendInkBatch(_ inkSpots: [InkSpot]) {
+        guard !connectedPeers.isEmpty else { return }
+
+        do {
+            let compressedData = try InkDataBatchProcessor.compressInkSpots(inkSpots)
+            let message = NetworkGameMessage(type: .inkBatch, senderId: peerID.displayName, data: compressedData)
+            try sendMessage(message)
+        } catch {
+            print("Failed to send ink batch: \(error)")
+        }
+    }
+
+    /// Queue ink spot for batch processing
+    public func queueInkSpot(_ inkSpot: InkSpot) {
+        inkBatchProcessor?.addInkSpot(inkSpot)
+    }
+
+    /// Queue player update for synchronization
+    public func queuePlayerUpdate(_ player: Player) {
+        synchronizationService?.queuePlayerUpdate(player)
     }
 
     // MARK: - GameRepository Implementation
@@ -252,7 +311,8 @@ public class MultiPeerGameRepository: NSObject, GameRepository {
     }
 
     private func handlePongMessage(_ message: NetworkGameMessage) {
-        // Handle pong response (could be used for latency measurement)
+        // Handle pong response for latency measurement
+        synchronizationService?.handlePongReceived()
         print("Received pong from \(message.senderId)")
     }
 
@@ -310,6 +370,19 @@ public class MultiPeerGameRepository: NSObject, GameRepository {
             print("Failed to parse game state message: \(error)")
         }
     }
+
+    private func handleInkBatchMessage(_ message: NetworkGameMessage) {
+        do {
+            let networkInkSpots = try InkDataBatchProcessor.decompressInkSpots(from: message.data)
+            // Handle batch of ink spots
+            print("Received ink batch with \(networkInkSpots.count) spots from \(message.senderId)")
+
+            // Convert network ink spots to domain entities and update game state
+            // This would typically be handled by a use case
+        } catch {
+            print("Failed to parse ink batch message: \(error)")
+        }
+    }
 }
 
 // MARK: - ConnectionState
@@ -333,6 +406,13 @@ extension MultiPeerGameRepository: MCSessionDelegate {
                 if self.connectedPeers.isEmpty {
                     self.connectionState = .disconnected
                 }
+
+                // Notify peer disconnection
+                NotificationCenter.default.post(
+                    name: .peerDisconnected,
+                    object: nil,
+                    userInfo: ["peerID": peerID]
+                )
 
             case .connecting:
                 self.connectionState = .connecting
