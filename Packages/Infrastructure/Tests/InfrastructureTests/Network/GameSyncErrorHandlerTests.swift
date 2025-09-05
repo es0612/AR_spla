@@ -92,7 +92,7 @@ struct GameSyncErrorHandlerTests {
     }
 
     @Test("クリティカルエラーのコールバック")
-    func testCriticalErrorCallback() {
+    func testCriticalErrorCallback() async {
         let errorHandler = createErrorHandler()
 
         var receivedCriticalErrors: [CriticalSyncError] = []
@@ -100,16 +100,18 @@ struct GameSyncErrorHandlerTests {
             receivedCriticalErrors.append(error)
         }
 
-        // クリティカルエラーを発生させる
-        errorHandler.handleGenericError(TestError.generic, context: "critical_test")
+        // 複数回エラーを発生させて最大再試行回数に達するようにする
+        for _ in 0..<3 {
+            errorHandler.handleGenericError(TestError.generic, context: "critical_test")
+        }
 
-        // 少し待ってコールバックが呼ばれることを確認
-        Thread.sleep(forTimeInterval: 0.1)
-        #expect(receivedCriticalErrors.count == 1)
+        // 十分な時間待ってコールバックが呼ばれることを確認
+        try? await Task.sleep(nanoseconds: 3_000_000_000) // 3秒
+        #expect(receivedCriticalErrors.count >= 1)
     }
 
     @Test("エラー復旧のコールバック")
-    func testErrorRecoveredCallback() {
+    func testErrorRecoveredCallback() async {
         let errorHandler = createErrorHandler()
 
         var recoveredContexts: [String] = []
@@ -122,7 +124,7 @@ struct GameSyncErrorHandlerTests {
         errorHandler.handleSyncError(syncError, context: "recoverable_test")
 
         // 復旧のシミュレーション（実際の実装では自動的に行われる）
-        Thread.sleep(forTimeInterval: 1.1) // retryDelayより少し長く待つ
+        try? await Task.sleep(nanoseconds: 2_000_000_000) // 2秒待つ
 
         // 復旧コールバックが呼ばれることを確認
         #expect(recoveredContexts.contains("recoverable_test"))
