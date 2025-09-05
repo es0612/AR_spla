@@ -145,8 +145,6 @@ public class GameSyncErrorHandler {
         }
     }
 
-
-
     private func handleCriticalError(_ error: CriticalSyncError, context: String) {
         print("Critical error in context: \(context) - \(error)")
 

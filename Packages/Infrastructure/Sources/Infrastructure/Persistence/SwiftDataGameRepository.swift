@@ -274,23 +274,23 @@ public class SwiftDataGameRepository: GameRepository {
         // Create placeholder players based on stored names
         // Ensure we always have exactly 2 players for game session
         var players: [Player] = []
-        
+
         // Add first player (use default if not available)
         let firstPlayerName = !history.playerNames.isEmpty ? history.playerNames[0] : "Player 1"
         let firstPlayerId = PlayerId()
         let firstPosition = Position3D(x: 0, y: 0, z: 0)
         let firstScore = GameScore(paintedArea: Float(history.playerScore))
-        
+
         let firstPlayer = Player(id: firstPlayerId, name: firstPlayerName, color: .red, position: firstPosition)
             .updateScore(firstScore)
         players.append(firstPlayer)
-        
+
         // Add second player (use default if not available)
         let secondPlayerName = history.playerNames.count > 1 ? history.playerNames[1] : "Player 2"
         let secondPlayerId = PlayerId()
         let secondPosition = Position3D(x: 0, y: 0, z: 0)
         let secondScore = GameScore(paintedArea: Float(history.opponentScore))
-        
+
         let secondPlayer = Player(id: secondPlayerId, name: secondPlayerName, color: .blue, position: secondPosition)
             .updateScore(secondScore)
         players.append(secondPlayer)

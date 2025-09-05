@@ -60,7 +60,7 @@ public class MultiplayerSessionManager {
 
         sessionState = .creating
         onSessionStateChanged?(.creating)
-        
+
         connectedPlayers = players
 
         // Only create GameSession if we have enough players

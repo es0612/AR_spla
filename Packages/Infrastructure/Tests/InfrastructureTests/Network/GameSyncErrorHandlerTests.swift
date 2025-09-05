@@ -101,7 +101,7 @@ struct GameSyncErrorHandlerTests {
         }
 
         // 複数回エラーを発生させて最大再試行回数に達するようにする
-        for _ in 0..<3 {
+        for _ in 0 ..< 3 {
             errorHandler.handleGenericError(TestError.generic, context: "critical_test")
         }
 
@@ -119,12 +119,12 @@ struct GameSyncErrorHandlerTests {
             recoveredContexts.append(context)
         }
 
-        // 復旧可能なエラーを発生させる
+        // 復旧可能なエラーを発生させる（syncFailedは確実に復旧処理が実行される）
         let syncError = SyncError.syncFailed(TestError.generic)
         errorHandler.handleSyncError(syncError, context: "recoverable_test")
 
-        // 復旧のシミュレーション（実際の実装では自動的に行われる）
-        try? await Task.sleep(nanoseconds: 2_000_000_000) // 2秒待つ
+        // 復旧のシミュレーション（retryDelay(2秒) + retrySyncOperation(1秒) = 3秒必要）
+        try? await Task.sleep(nanoseconds: 3_500_000_000) // 3.5秒待つ
 
         // 復旧コールバックが呼ばれることを確認
         #expect(recoveredContexts.contains("recoverable_test"))
