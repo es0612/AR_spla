@@ -38,6 +38,14 @@ public class GameState {
     public var soundEnabled = true
     public var hapticEnabled = true
 
+    // MARK: - Balance Settings
+
+    /// ゲームバランス設定
+    public let balanceSettings = GameBalanceSettings()
+
+    /// フィードバック管理
+    public let feedbackManager = GameFeedbackManager()
+
     // MARK: - Initialization
 
     public init() {
@@ -64,7 +72,7 @@ public class GameState {
             currentPhase = .connecting
             isConnecting = true
 
-            try await gameCoordinator.startGame(with: players, duration: gameDuration)
+            try await gameCoordinator.startGame(with: players, duration: balanceSettings.gameDuration)
 
             // Update state from coordinator
             updateStateFromCoordinator()
@@ -79,13 +87,16 @@ public class GameState {
 
     /// Shoot ink at the specified position
     @MainActor
-    public func shootInk(playerId: PlayerId, at position: Position3D, size: Float = 0.5) async {
+    public func shootInk(playerId: PlayerId, at position: Position3D, size: Float? = nil) async {
         do {
-            try await gameCoordinator.shootInk(playerId: playerId, at: position, size: size)
+            // Use balance settings for ink spot size if not specified
+            let inkSize = size ?? balanceSettings.inkSpotBaseSize
+
+            try await gameCoordinator.shootInk(playerId: playerId, at: position, size: inkSize)
             updateStateFromCoordinator()
 
             // Send network message for multiplayer synchronization
-            await sendInkShotMessage(playerId: playerId, position: position, size: size)
+            await sendInkShotMessage(playerId: playerId, position: position, size: inkSize)
         } catch {
             handleError(error)
         }
@@ -119,9 +130,10 @@ public class GameState {
 
             print("Player \(playerId) deactivated due to ink collision at \(position)")
 
-            // Reactivate player after 3 seconds
+            // Reactivate player after stun duration from balance settings
             Task {
-                try? await Task.sleep(nanoseconds: 3_000_000_000) // 3 seconds
+                let stunDuration = UInt64(balanceSettings.playerStunDuration * 1_000_000_000)
+                try? await Task.sleep(nanoseconds: stunDuration)
 
                 await MainActor.run {
                     if let currentIndex = self.players.firstIndex(where: { $0.id == playerId }) {
@@ -148,9 +160,21 @@ public class GameState {
             try await gameCoordinator.endGame()
             updateStateFromCoordinator()
             isGameActive = false
+
+            // ゲーム終了時にフィードバック収集を促す
+            if feedbackManager.isCollectionEnabled {
+                requestFeedback()
+            }
         } catch {
             handleError(error)
         }
+    }
+
+    /// フィードバック収集を要求
+    private func requestFeedback() {
+        // 実際の実装では、ゲーム結果画面でフィードバックフォームを表示する
+        // ここでは、フィードバック要求フラグを設定
+        print("Requesting feedback for completed game session")
     }
 
     /// Reset the game state
@@ -189,6 +213,9 @@ public class GameState {
         UserDefaults.standard.set(gameDuration, forKey: "gameDuration")
         UserDefaults.standard.set(soundEnabled, forKey: "soundEnabled")
         UserDefaults.standard.set(hapticEnabled, forKey: "hapticEnabled")
+
+        // Save balance settings
+        balanceSettings.saveSettings()
     }
 
     /// Load settings from UserDefaults

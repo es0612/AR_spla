@@ -119,6 +119,100 @@ public struct GameRuleService {
     public var currentGameRules: GameRules {
         gameRules
     }
+
+    // MARK: - Balance Adjustments
+
+    /// Check if ink shot is within cooldown period
+    public func isInkShotAllowed(
+        lastShotTime: Date,
+        cooldownDuration: TimeInterval
+    ) -> Bool {
+        let timeSinceLastShot = Date().timeIntervalSince(lastShotTime)
+        return timeSinceLastShot >= cooldownDuration
+    }
+
+    /// Calculate ink spot size based on rapid fire penalty
+    public func calculateInkSpotSize(
+        baseSize: Float,
+        consecutiveShots: Int,
+        rapidFireReduction: Float
+    ) -> Float {
+        guard consecutiveShots > 0 else { return baseSize }
+
+        // Apply reduction for rapid fire (diminishing returns)
+        let reductionFactor = pow(rapidFireReduction, Float(consecutiveShots - 1))
+        let adjustedSize = baseSize * reductionFactor
+
+        // Ensure size doesn't go below minimum
+        return max(gameRules.inkSpotMinSize, adjustedSize)
+    }
+
+    /// Check if position is within field boundaries
+    public func isPositionInField(
+        _ position: Position3D,
+        fieldSize: CGSize,
+        boundaryMargin: Float
+    ) -> Bool {
+        let halfWidth = Float(fieldSize.width) / 2.0 - boundaryMargin
+        let halfHeight = Float(fieldSize.height) / 2.0 - boundaryMargin
+
+        return abs(position.x) <= halfWidth &&
+            abs(position.z) <= halfHeight &&
+            position.y >= -boundaryMargin
+    }
+
+    /// Calculate stun duration based on ink spot properties
+    public func calculateStunDuration(
+        baseStunDuration: TimeInterval,
+        inkSpotSize: Float,
+        playerSpeed: Float
+    ) -> TimeInterval {
+        // Larger ink spots cause longer stuns
+        let sizeFactor = inkSpotSize / gameRules.inkSpotMaxSize
+
+        // Faster players recover quicker
+        let speedFactor = max(0.5, 2.0 - (playerSpeed / 3.0))
+
+        return baseStunDuration * Double(sizeFactor * speedFactor)
+    }
+
+    /// Validate game balance parameters
+    public func validateBalanceParameters(
+        inkShotCooldown: TimeInterval,
+        inkMaxRange: Float,
+        inkSpotBaseSize: Float,
+        playerStunDuration: TimeInterval,
+        maxInkSpotsPerPlayer: Int
+    ) -> Bool {
+        inkShotCooldown > 0 &&
+            inkMaxRange > 0 &&
+            inkSpotBaseSize > 0 &&
+            inkSpotBaseSize <= gameRules.inkSpotMaxSize &&
+            playerStunDuration > 0 &&
+            maxInkSpotsPerPlayer > 0
+    }
+
+    /// Calculate optimal field size based on player count and game duration
+    public func calculateOptimalFieldSize(
+        playerCount: Int,
+        gameDuration: TimeInterval
+    ) -> CGSize {
+        // Base field size for 2 players and 3 minutes
+        let baseSize: Float = 4.0
+
+        // Adjust for player count (more players need more space)
+        let playerFactor = sqrt(Float(playerCount) / 2.0)
+
+        // Adjust for game duration (longer games need more space)
+        let timeFactor = sqrt(Float(gameDuration) / 180.0)
+
+        let adjustedSize = baseSize * playerFactor * timeFactor
+
+        // Clamp to reasonable bounds
+        let clampedSize = max(3.0, min(8.0, adjustedSize))
+
+        return CGSize(width: Double(clampedSize), height: Double(clampedSize))
+    }
 }
 
 // MARK: CustomStringConvertible

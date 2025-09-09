@@ -4,8 +4,46 @@ import Foundation
 
 /// Domain service for calculating scores and game results
 public struct ScoreCalculationService {
-    /// Create a ScoreCalculationService
-    public init() {}
+    // MARK: - Balance Parameters
+
+    /// 勝利ボーナスの割合（デフォルト: 10%）
+    public let winBonusPercentage: Float
+
+    /// 時間ボーナスの最大割合（デフォルト: 5%）
+    public let timeBonusMaxPercentage: Float
+
+    /// 効率性ボーナスの重み（デフォルト: 0.2）
+    public let efficiencyBonusWeight: Float
+
+    /// 最小勝利マージン（デフォルト: 3%）
+    public let minimumWinMargin: Float
+
+    /// 同点時にインクスポット数で判定するか
+    public let tieBreakByInkSpots: Bool
+
+    /// Create a ScoreCalculationService with default balance parameters
+    public init() {
+        winBonusPercentage = 0.1
+        timeBonusMaxPercentage = 0.05
+        efficiencyBonusWeight = 0.2
+        minimumWinMargin = 3.0
+        tieBreakByInkSpots = true
+    }
+
+    /// Create a ScoreCalculationService with custom balance parameters
+    public init(
+        winBonusPercentage: Float = 0.1,
+        timeBonusMaxPercentage: Float = 0.05,
+        efficiencyBonusWeight: Float = 0.2,
+        minimumWinMargin: Float = 3.0,
+        tieBreakByInkSpots: Bool = true
+    ) {
+        self.winBonusPercentage = winBonusPercentage
+        self.timeBonusMaxPercentage = timeBonusMaxPercentage
+        self.efficiencyBonusWeight = efficiencyBonusWeight
+        self.minimumWinMargin = minimumWinMargin
+        self.tieBreakByInkSpots = tieBreakByInkSpots
+    }
 
     /// Calculate a player's score based on their ink spots
     public func calculatePlayerScore(
@@ -43,19 +81,40 @@ public struct ScoreCalculationService {
         return min(100.0, (totalArea / fieldSize) * 100)
     }
 
-    /// Determine the winner from a list of players
-    public func determineWinner(players: [Player]) -> Player? {
+    /// Determine the winner from a list of players with enhanced tie-breaking
+    public func determineWinner(players: [Player], inkSpots: [InkSpot] = []) -> Player? {
         guard !players.isEmpty else { return nil }
 
         // Sort players by score (highest first)
         let sortedPlayers = players.sorted { $0.score > $1.score }
 
-        // Check for tie between top players
-        if sortedPlayers.count >= 2, sortedPlayers[0].score == sortedPlayers[1].score {
-            return nil // Tie
+        guard sortedPlayers.count >= 2 else {
+            return sortedPlayers.first
         }
 
-        return sortedPlayers.first
+        let topPlayer = sortedPlayers[0]
+        let secondPlayer = sortedPlayers[1]
+
+        // Check if the score difference is significant enough
+        let scoreDifference = topPlayer.score.paintedArea - secondPlayer.score.paintedArea
+
+        if scoreDifference < minimumWinMargin {
+            // Close game - use tie-breaking rules
+            if tieBreakByInkSpots, !inkSpots.isEmpty {
+                let topPlayerInkSpots = inkSpots.filter { $0.ownerId == topPlayer.id }.count
+                let secondPlayerInkSpots = inkSpots.filter { $0.ownerId == secondPlayer.id }.count
+
+                if topPlayerInkSpots != secondPlayerInkSpots {
+                    // Winner determined by ink spot count
+                    return topPlayerInkSpots > secondPlayerInkSpots ? topPlayer : secondPlayer
+                }
+            }
+
+            // Still tied - no winner
+            return nil
+        }
+
+        return topPlayer
     }
 
     /// Calculate game results for all players
@@ -130,7 +189,7 @@ public struct ScoreCalculationService {
 
     /// Calculate win bonus for a winning score
     public func calculateWinBonus(_ baseScore: GameScore) -> GameScore {
-        let bonusPercentage = baseScore.paintedArea * 0.1 // 10% bonus
+        let bonusPercentage = baseScore.paintedArea * winBonusPercentage
         let newArea = min(100.0, baseScore.paintedArea + bonusPercentage)
         return GameScore(paintedArea: newArea)
     }
@@ -154,10 +213,50 @@ public struct ScoreCalculationService {
         }
 
         let timeRatio = Float(remainingTime / totalTime)
-        let bonusPercentage = baseScore.paintedArea * timeRatio * 0.05 // Up to 5% bonus
+        let bonusPercentage = baseScore.paintedArea * timeRatio * timeBonusMaxPercentage
         let newArea = min(100.0, baseScore.paintedArea + bonusPercentage)
 
         return GameScore(paintedArea: newArea)
+    }
+
+    /// Calculate efficiency bonus based on area coverage per ink spot
+    public func calculateEfficiencyBonus(
+        _ baseScore: GameScore,
+        playerId: PlayerId,
+        inkSpots: [InkSpot]
+    ) -> GameScore {
+        let efficiency = calculateAreaEfficiency(playerId: playerId, inkSpots: inkSpots)
+        let bonusPercentage = baseScore.paintedArea * efficiency * efficiencyBonusWeight
+        let newArea = min(100.0, baseScore.paintedArea + bonusPercentage)
+
+        return GameScore(paintedArea: newArea)
+    }
+
+    /// Calculate comprehensive final score with all bonuses
+    public func calculateFinalScore(
+        baseScore: GameScore,
+        playerId: PlayerId,
+        inkSpots: [InkSpot],
+        isWinner: Bool,
+        remainingTime: TimeInterval,
+        totalTime: TimeInterval
+    ) -> GameScore {
+        var finalScore = baseScore
+
+        // Apply efficiency bonus
+        finalScore = calculateEfficiencyBonus(finalScore, playerId: playerId, inkSpots: inkSpots)
+
+        // Apply time bonus if there's remaining time
+        if remainingTime > 0 {
+            finalScore = calculateTimeBonus(finalScore, remainingTime: remainingTime, totalTime: totalTime)
+        }
+
+        // Apply win bonus if player is the winner
+        if isWinner {
+            finalScore = calculateWinBonus(finalScore)
+        }
+
+        return finalScore
     }
 }
 

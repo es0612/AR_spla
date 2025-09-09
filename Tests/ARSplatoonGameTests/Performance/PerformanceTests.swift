@@ -413,6 +413,137 @@ struct PerformanceTests {
         
         print("並行処理パフォーマンス: 100個のインクスポットの並行追加を\(String(format: "%.3f", duration))秒で完了")
     }
+    
+    // MARK: - Balance Settings Performance Tests
+    
+    @Test("ゲームバランス設定パフォーマンステスト")
+    func testGameBalanceSettingsPerformance() async throws {
+        let gameState = GameState()
+        let settings = gameState.balanceSettings
+        
+        let startTime = Date()
+        
+        // 大量の設定変更と検証
+        for i in 0..<10000 {
+            settings.inkShotCooldown = Double(i % 100) * 0.01 + 0.1
+            settings.inkMaxRange = Float(i % 50) * 0.2 + 1.0
+            settings.inkSpotBaseSize = Float(i % 20) * 0.02 + 0.1
+            settings.playerStunDuration = Double(i % 30) * 0.1 + 1.0
+            
+            // 設定の妥当性チェック
+            _ = settings.isValid
+            
+            // 難易度変更
+            if i % 1000 == 0 {
+                settings.difficultyLevel = GameBalanceSettings.DifficultyLevel.allCases[i / 1000 % 3]
+            }
+        }
+        
+        let endTime = Date()
+        let duration = endTime.timeIntervalSince(startTime)
+        
+        // パフォーマンス要件: 10000回の設定変更が1秒以内
+        #expect(duration < 1.0)
+        
+        print("ゲームバランス設定パフォーマンス: 10000回の設定変更を\(String(format: "%.3f", duration))秒で完了")
+    }
+    
+    @Test("フィードバック処理パフォーマンステスト")
+    func testFeedbackProcessingPerformance() async throws {
+        let gameState = GameState()
+        let feedbackManager = gameState.feedbackManager
+        
+        let startTime = Date()
+        
+        // 大量のフィードバックを処理
+        for i in 0..<1000 {
+            let feedback = GameFeedbackManager.GameSessionFeedback(
+                sessionId: UUID(),
+                gameDuration: Double(120 + i % 180),
+                playerCount: 2 + i % 3,
+                difficultyLevel: ["イージー", "ノーマル", "ハード"][i % 3],
+                inkShotCooldownRating: 1 + i % 5,
+                inkRangeRating: 1 + i % 5,
+                stunDurationRating: 1 + i % 5,
+                gameTimeRating: 1 + i % 5,
+                overallBalanceRating: 1 + i % 5,
+                funRating: 1 + i % 5,
+                difficultyRating: 1 + i % 5,
+                fairnessRating: 1 + i % 5,
+                replayabilityRating: 1 + i % 5,
+                comments: "パフォーマンステスト \(i)",
+                suggestedImprovements: "改善提案 \(i)",
+                finalScore: Float(i % 100),
+                inkSpotsPlaced: i % 200,
+                timesStunned: i % 10,
+                averageInkSpotSize: 0.1 + Float(i % 10) * 0.05
+            )
+            
+            feedbackManager.collectFeedback(feedback)
+        }
+        
+        // 分析の実行
+        feedbackManager.updateAnalysis()
+        
+        let endTime = Date()
+        let duration = endTime.timeIntervalSince(startTime)
+        
+        // パフォーマンス要件: 1000個のフィードバック処理が2秒以内
+        #expect(duration < 2.0)
+        #expect(feedbackManager.feedbacks.count == 1000)
+        #expect(feedbackManager.currentAnalysis != nil)
+        
+        print("フィードバック処理パフォーマンス: 1000個のフィードバック処理を\(String(format: "%.3f", duration))秒で完了")
+    }
+    
+    @Test("CSVエクスポートパフォーマンステスト")
+    func testCSVExportPerformance() async throws {
+        let gameState = GameState()
+        let feedbackManager = gameState.feedbackManager
+        
+        // 大量のフィードバックデータを生成
+        for i in 0..<5000 {
+            let feedback = GameFeedbackManager.GameSessionFeedback(
+                sessionId: UUID(),
+                gameDuration: Double(120 + i % 180),
+                playerCount: 2 + i % 3,
+                difficultyLevel: ["イージー", "ノーマル", "ハード"][i % 3],
+                inkShotCooldownRating: 1 + i % 5,
+                inkRangeRating: 1 + i % 5,
+                stunDurationRating: 1 + i % 5,
+                gameTimeRating: 1 + i % 5,
+                overallBalanceRating: 1 + i % 5,
+                funRating: 1 + i % 5,
+                difficultyRating: 1 + i % 5,
+                fairnessRating: 1 + i % 5,
+                replayabilityRating: 1 + i % 5,
+                comments: "CSVテスト \(i)",
+                suggestedImprovements: "改善提案 \(i)",
+                finalScore: Float(i % 100),
+                inkSpotsPlaced: i % 200,
+                timesStunned: i % 10,
+                averageInkSpotSize: 0.1 + Float(i % 10) * 0.05
+            )
+            
+            feedbackManager.collectFeedback(feedback)
+        }
+        
+        let startTime = Date()
+        
+        // CSVエクスポートの実行
+        let csvData = feedbackManager.exportFeedbacksAsCSV()
+        
+        let endTime = Date()
+        let duration = endTime.timeIntervalSince(startTime)
+        
+        // パフォーマンス要件: 5000個のフィードバックのCSVエクスポートが3秒以内
+        #expect(duration < 3.0)
+        #expect(!csvData.isEmpty)
+        #expect(csvData.contains("Date,SessionId"))
+        
+        print("CSVエクスポートパフォーマンス: 5000個のフィードバックのCSVエクスポートを\(String(format: "%.3f", duration))秒で完了")
+        print("CSVデータサイズ: \(formatBytes(UInt64(csvData.utf8.count)))")
+    }
 }
 
 // MARK: - Helper Functions

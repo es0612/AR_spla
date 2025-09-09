@@ -95,7 +95,7 @@ public class SwiftDataGameRepository: GameRepository {
 
         let histories = try modelContext.fetch(descriptor)
 
-        return try histories.compactMap { history in
+        return histories.compactMap { history in
             try? convertToGameSession(history)
         }
     }
@@ -112,7 +112,7 @@ public class SwiftDataGameRepository: GameRepository {
 
         let histories = try modelContext.fetch(descriptor)
 
-        return try histories.compactMap { history in
+        return histories.compactMap { history in
             try? convertToGameSession(history)
         }
     }

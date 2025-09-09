@@ -21,11 +21,11 @@ struct SettingsView: View {
                 HStack {
                     Text("ゲーム時間")
                     Spacer()
-                    Text("\(Int(gameState.gameDuration))秒")
+                    Text("\(Int(gameState.balanceSettings.gameDuration))秒")
                         .foregroundColor(.secondary)
                 }
 
-                Slider(value: $gameState.gameDuration, in: 60 ... 300, step: 30) {
+                Slider(value: $gameState.balanceSettings.gameDuration, in: 60 ... 300, step: 30) {
                     Text("ゲーム時間")
                 } minimumValueLabel: {
                     Text("1分")
@@ -38,6 +38,94 @@ struct SettingsView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .opacity(gameState.isGameActive ? 1 : 0)
+            }
+
+            Section("難易度設定") {
+                Picker("難易度", selection: $gameState.balanceSettings.difficultyLevel) {
+                    ForEach(GameBalanceSettings.DifficultyLevel.allCases, id: \.self) { level in
+                        Text(level.displayName).tag(level)
+                    }
+                }
+                .pickerStyle(SegmentedPickerStyle())
+                .disabled(gameState.isGameActive)
+
+                HStack {
+                    Button("競技用設定") {
+                        gameState.balanceSettings.applyCompetitiveSettings()
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(gameState.isGameActive)
+
+                    Spacer()
+
+                    Button("カジュアル設定") {
+                        gameState.balanceSettings.applyCasualSettings()
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(gameState.isGameActive)
+                }
+
+                Button("デフォルトに戻す") {
+                    gameState.balanceSettings.resetToDefaults()
+                }
+                .foregroundColor(.orange)
+                .disabled(gameState.isGameActive)
+            }
+
+            Section("詳細バランス設定") {
+                Group {
+                    HStack {
+                        Text("インク発射間隔")
+                        Spacer()
+                        Text(String(format: "%.1f秒", gameState.balanceSettings.inkShotCooldown))
+                            .foregroundColor(.secondary)
+                    }
+
+                    Slider(value: $gameState.balanceSettings.inkShotCooldown, in: 0.1 ... 1.0, step: 0.1) {
+                        Text("インク発射間隔")
+                    }
+                    .disabled(gameState.isGameActive)
+
+                    HStack {
+                        Text("インク射程距離")
+                        Spacer()
+                        Text(String(format: "%.1fm", gameState.balanceSettings.inkMaxRange))
+                            .foregroundColor(.secondary)
+                    }
+
+                    Slider(value: $gameState.balanceSettings.inkMaxRange, in: 2.0 ... 8.0, step: 0.5) {
+                        Text("インク射程距離")
+                    }
+                    .disabled(gameState.isGameActive)
+
+                    HStack {
+                        Text("インクスポットサイズ")
+                        Spacer()
+                        Text(String(format: "%.2f", gameState.balanceSettings.inkSpotBaseSize))
+                            .foregroundColor(.secondary)
+                    }
+
+                    Slider(value: $gameState.balanceSettings.inkSpotBaseSize, in: 0.2 ... 0.8, step: 0.05) {
+                        Text("インクスポットサイズ")
+                    }
+                    .disabled(gameState.isGameActive)
+
+                    HStack {
+                        Text("スタン時間")
+                        Spacer()
+                        Text(String(format: "%.1f秒", gameState.balanceSettings.playerStunDuration))
+                            .foregroundColor(.secondary)
+                    }
+
+                    Slider(value: $gameState.balanceSettings.playerStunDuration, in: 1.0 ... 5.0, step: 0.5) {
+                        Text("スタン時間")
+                    }
+                    .disabled(gameState.isGameActive)
+                }
+
+                Text("詳細設定は上級者向けです。難易度設定を使用することをお勧めします。")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
 
             Section("オーディオ・触覚") {

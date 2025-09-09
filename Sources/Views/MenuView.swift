@@ -90,6 +90,21 @@ struct MenuView: View {
                     }
                 }
 
+                // フィードバックボタン
+                NavigationLink(destination: GameFeedbackView(feedbackManager: gameState.feedbackManager)) {
+                    HStack {
+                        Image(systemName: "star.bubble")
+                        Text("フィードバック")
+                    }
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.purple)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.purple.opacity(0.1))
+                    .cornerRadius(12)
+                }
+
                 // ヘルプボタン
                 Button(action: {
                     tutorialManager.showHelp(HelpContent.gameHelp)

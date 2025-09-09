@@ -127,23 +127,17 @@ public class DefaultErrorHandlingService: ErrorHandlingService {
         switch error {
         case .arSessionInterrupted:
             // ARセッションの再開を試行
-            if #available(iOS 15.0, macOS 12.0, *) {
-                try? await Task.sleep(nanoseconds: 1_000_000_000) // 1秒待機
-            }
+            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1秒待機
             return true
 
         case .networkPeerDisconnected:
             // ネットワーク再接続を試行
-            if #available(iOS 15.0, macOS 12.0, *) {
-                try? await Task.sleep(nanoseconds: 2_000_000_000) // 2秒待機
-            }
+            try? await Task.sleep(nanoseconds: 2_000_000_000) // 2秒待機
             return true
 
         case .arTrackingLimited:
             // トラッキング復旧を待機
-            if #available(iOS 15.0, macOS 12.0, *) {
-                try? await Task.sleep(nanoseconds: 3_000_000_000) // 3秒待機
-            }
+            try? await Task.sleep(nanoseconds: 3_000_000_000) // 3秒待機
             return true
 
         default:
