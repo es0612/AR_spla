@@ -152,7 +152,7 @@ class ErrorManager {
     func hideGuidance() {
         // ガイダンス関連のトーストやメッセージを非表示にする
         dismissToast()
-        
+
         // ガイダンス表示中のエラーがあれば閉じる
         if let currentError = currentError,
            case .arPlaneDetectionFailed = currentError {
