@@ -34,6 +34,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.arsplatoon.game
         INFOPLIST_FILE: Resources/Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        LAUNCH_SCREEN: Resources/LaunchScreen.storyboard
         SWIFT_EMIT_LOC_STRINGS: true
         # ARKit requirements
         ARKIT_REQUIRED: true
@@ -42,7 +43,8 @@ targets:
         NSLocalNetworkUsageDescription: "このアプリは近くのプレイヤーとの対戦のためにローカルネットワークを使用します"
         # Code signing for development
         CODE_SIGN_STYLE: Automatic
-        CODE_SIGN_IDENTITY: "iPhone Developer"
+        DEVELOPMENT_TEAM: ""
+        CODE_SIGN_IDENTITY: "Apple Development"
       configs:
         Debug:
           SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG

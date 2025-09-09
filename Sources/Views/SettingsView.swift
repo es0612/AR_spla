@@ -133,6 +133,24 @@ struct SettingsView: View {
                 Toggle("触覚フィードバック", isOn: $gameState.hapticEnabled)
             }
 
+            Section("アクセシビリティ・プライバシー") {
+                NavigationLink(destination: AccessibilitySettingsView()) {
+                    HStack {
+                        Image(systemName: "accessibility")
+                            .foregroundColor(.blue)
+                        Text("アクセシビリティ設定")
+                    }
+                }
+
+                NavigationLink(destination: PrivacySettingsView()) {
+                    HStack {
+                        Image(systemName: "hand.raised.fill")
+                            .foregroundColor(.green)
+                        Text("プライバシー設定")
+                    }
+                }
+            }
+
             Section("チュートリアル・ヘルプ") {
                 Toggle("チュートリアルを表示", isOn: $tutorialManager.showTutorials)
                 Toggle("ヒントを表示", isOn: $tutorialManager.showHints)

@@ -7,12 +7,14 @@ struct MenuView: View {
     let errorManager: ErrorManager
     let tutorialManager: TutorialManager
     @State private var isSearchingForPlayers = false
+    @State private var accessibilityManager = AccessibilityManager()
 
     var body: some View {
         VStack(spacing: 30) {
             Text("ゲームメニュー")
-                .font(.largeTitle)
-                .fontWeight(.bold)
+                .font(.system(size: accessibilityManager.accessibleFontSize(base: 34), weight: .bold))
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityLabel("ARスプラトゥーンゲーム メインメニュー")
 
             // Game Status Display
             if gameState.currentPhase != .waiting {
@@ -21,6 +23,9 @@ struct MenuView: View {
 
             VStack(spacing: 20) {
                 Button(action: {
+                    accessibilityManager.performHapticFeedback(.light)
+                    accessibilityManager.performAudioFeedback(.gameStart)
+
                     if !tutorialManager.isTutorialCompleted(.multiplayer) {
                         tutorialManager.startTutorial(.multiplayer)
                     } else {
@@ -29,27 +34,30 @@ struct MenuView: View {
                 }) {
                     HStack {
                         Image(systemName: "person.2.fill")
+                            .accessibilityHidden(true)
                         Text("マルチプレイヤー")
                     }
-                    .font(.title2)
-                    .fontWeight(.semibold)
+                    .font(.system(size: accessibilityManager.accessibleFontSize(base: 20), weight: .semibold))
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(gameState.isConnecting ? Color.gray : Color.green)
+                    .background(accessibilityManager.accessibleColor(for: gameState.isConnecting ? Color.gray : Color.green))
                     .cornerRadius(12)
                 }
                 .disabled(gameState.isConnecting || gameState.isGameActive)
+                .accessibilityLabel("マルチプレイヤーゲームを開始")
+                .accessibilityHint(gameState.isConnecting ? "現在接続中です" : gameState.isGameActive ? "ゲーム中のため利用できません" : "近くのプレイヤーとの対戦を開始します")
+                .accessibilityAddTraits(gameState.isConnecting || gameState.isGameActive ? .notEnabled : .isButton)
 
                 Button(action: {
                     // TODO: シングルプレイヤー機能（将来実装）
                 }) {
                     HStack {
                         Image(systemName: "person.fill")
+                            .accessibilityHidden(true)
                         Text("シングルプレイヤー")
                     }
-                    .font(.title2)
-                    .fontWeight(.semibold)
+                    .font(.system(size: accessibilityManager.accessibleFontSize(base: 20), weight: .semibold))
                     .foregroundColor(.gray)
                     .frame(maxWidth: .infinity)
                     .padding()
@@ -57,20 +65,25 @@ struct MenuView: View {
                     .cornerRadius(12)
                 }
                 .disabled(true)
+                .accessibilityLabel("シングルプレイヤーゲーム")
+                .accessibilityHint("現在開発中のため利用できません")
+                .accessibilityAddTraits(.notEnabled)
 
                 NavigationLink(destination: ARGameView(gameState: gameState, errorManager: errorManager, tutorialManager: tutorialManager)) {
                     HStack {
                         Image(systemName: "arkit")
+                            .accessibilityHidden(true)
                         Text(gameState.isGameActive ? "ゲームに戻る" : "ARテスト")
                     }
-                    .font(.title2)
-                    .fontWeight(.semibold)
+                    .font(.system(size: accessibilityManager.accessibleFontSize(base: 20), weight: .semibold))
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(gameState.isGameActive ? Color.blue : Color.orange)
+                    .background(accessibilityManager.accessibleColor(for: gameState.isGameActive ? Color.blue : Color.orange))
                     .cornerRadius(12)
                 }
+                .accessibilityLabel(gameState.isGameActive ? "進行中のゲームに戻る" : "ARゲーム機能をテスト")
+                .accessibilityHint(gameState.isGameActive ? "現在進行中のゲームに戻ります" : "ARカメラを使用してゲーム機能をテストします")
 
                 if gameState.currentPhase == .finished {
                     Button(action: {

@@ -119,7 +119,7 @@ struct GameRuleServiceTests {
         ]
 
         let coverage = service.calculateFieldCoverage(inkSpots: inkSpots, fieldSize: fieldSize)
-        let _ = (Float.pi * 1.0) / fieldSize * 100 // Expected single spot coverage
+        _ = (Float.pi * 1.0) / fieldSize * 100 // Expected single spot coverage
 
         // Note: Current implementation doesn't handle overlaps, so coverage will be additive
         // This is a known limitation that could be improved in the future
@@ -175,7 +175,7 @@ struct GameRuleServiceTests {
     private func createInvalidGameSession() -> GameSession {
         // This will create a session that violates some rule
         let player1 = createTestPlayer()
-        let _ = Player(
+        _ = Player(
             id: PlayerId(),
             name: "Player2",
             color: .blue,
