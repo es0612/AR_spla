@@ -4,6 +4,8 @@ import SwiftUI
 
 struct MenuView: View {
     let gameState: GameState
+    let errorManager: ErrorManager
+    let tutorialManager: TutorialManager
     @State private var isSearchingForPlayers = false
 
     var body: some View {
@@ -19,7 +21,11 @@ struct MenuView: View {
 
             VStack(spacing: 20) {
                 Button(action: {
-                    isSearchingForPlayers = true
+                    if !tutorialManager.isTutorialCompleted(.multiplayer) {
+                        tutorialManager.startTutorial(.multiplayer)
+                    } else {
+                        isSearchingForPlayers = true
+                    }
                 }) {
                     HStack {
                         Image(systemName: "person.2.fill")
@@ -52,7 +58,7 @@ struct MenuView: View {
                 }
                 .disabled(true)
 
-                NavigationLink(destination: ARGameView(gameState: gameState)) {
+                NavigationLink(destination: ARGameView(gameState: gameState, errorManager: errorManager, tutorialManager: tutorialManager)) {
                     HStack {
                         Image(systemName: "arkit")
                         Text(gameState.isGameActive ? "ゲームに戻る" : "ARテスト")
@@ -83,6 +89,23 @@ struct MenuView: View {
                         .cornerRadius(12)
                     }
                 }
+
+                // ヘルプボタン
+                Button(action: {
+                    tutorialManager.showHelp(HelpContent.gameHelp)
+                }) {
+                    HStack {
+                        Image(systemName: "questionmark.circle")
+                        Text("ヘルプ")
+                    }
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.blue)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue.opacity(0.1))
+                    .cornerRadius(12)
+                }
             }
             .padding(.horizontal)
 
@@ -92,7 +115,34 @@ struct MenuView: View {
         .navigationTitle("メニュー")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $isSearchingForPlayers) {
-            MultiplayerConnectionView(gameState: gameState)
+            MultiplayerConnectionView(gameState: gameState, errorManager: errorManager)
+        }
+        .overlay(alignment: .center) {
+            // チュートリアル表示
+            if tutorialManager.isShowingTutorial,
+               let currentStep = tutorialManager.currentTutorialStep {
+                TutorialView(
+                    step: currentStep,
+                    onNext: {
+                        tutorialManager.nextTutorialStep()
+                        if currentStep == .gameStart {
+                            isSearchingForPlayers = true
+                        }
+                    },
+                    onPrevious: {
+                        tutorialManager.previousTutorialStep()
+                    },
+                    onSkip: {
+                        tutorialManager.skipTutorial()
+                    },
+                    onComplete: {
+                        tutorialManager.completeTutorial()
+                        if currentStep.tutorialType == .multiplayer {
+                            isSearchingForPlayers = true
+                        }
+                    }
+                )
+            }
         }
     }
 }
@@ -182,6 +232,6 @@ struct GameStatusCard: View {
 
 #Preview {
     NavigationStack {
-        MenuView(gameState: GameState())
+        MenuView(gameState: GameState(), errorManager: ErrorManager(), tutorialManager: TutorialManager())
     }
 }

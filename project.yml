@@ -42,7 +42,7 @@ targets:
         NSLocalNetworkUsageDescription: "このアプリは近くのプレイヤーとの対戦のためにローカルネットワークを使用します"
         # Code signing for development
         CODE_SIGN_STYLE: Automatic
-        DEVELOPMENT_TEAM: ""
+        CODE_SIGN_IDENTITY: "iPhone Developer"
       configs:
         Debug:
           SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG

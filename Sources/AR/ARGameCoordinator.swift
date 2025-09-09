@@ -445,6 +445,9 @@ public class ARGameCoordinator: NSObject, ObservableObject {
                 if gameFieldRepository.setupGameField(on: planeAnchor) {
                     gameFieldState = .setup(planeAnchor)
                     delegate?.arGameCoordinator(self, didSetupGameField: planeAnchor)
+
+                    // Notify that plane detection is complete
+                    delegate?.arGameCoordinatorDidCompleteePlaneDetection(self)
                 }
             }
         }
@@ -683,4 +686,7 @@ public protocol ARGameCoordinatorDelegate: AnyObject {
     func arGameCoordinator(_ coordinator: ARGameCoordinator, didMergeInkSpots originalSpots: [InkSpot], into mergedSpot: InkSpot)
     func arGameCoordinator(_ coordinator: ARGameCoordinator, didCreateInkConflict newSpot: InkSpot, with existingSpot: InkSpot, overlapArea: Float)
     func arGameCoordinator(_ coordinator: ARGameCoordinator, didUpdatePlayerPosition position: Position3D)
+
+    // Guidance methods
+    func arGameCoordinatorDidCompleteePlaneDetection(_ coordinator: ARGameCoordinator)
 }

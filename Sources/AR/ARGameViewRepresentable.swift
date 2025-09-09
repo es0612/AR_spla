@@ -5,9 +5,11 @@ import SwiftUI
 
 struct ARGameViewRepresentable: UIViewControllerRepresentable {
     let gameState: GameState?
+    let errorManager: ErrorManager
 
-    init(gameState: GameState? = nil) {
+    init(gameState: GameState? = nil, errorManager: ErrorManager) {
         self.gameState = gameState
+        self.errorManager = errorManager
     }
 
     func makeUIViewController(context: Context) -> ARViewController {
@@ -15,7 +17,7 @@ struct ARGameViewRepresentable: UIViewControllerRepresentable {
         arViewController.delegate = context.coordinator
 
         if let gameState = gameState {
-            arViewController.configure(with: gameState)
+            arViewController.configure(with: gameState, errorManager: errorManager)
         }
 
         return arViewController
@@ -23,18 +25,23 @@ struct ARGameViewRepresentable: UIViewControllerRepresentable {
 
     func updateUIViewController(_ uiViewController: ARViewController, context _: Context) {
         if let gameState = gameState {
-            uiViewController.configure(with: gameState)
+            uiViewController.configure(with: gameState, errorManager: errorManager)
         }
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator()
+        Coordinator(errorManager: errorManager)
     }
 
     class Coordinator: NSObject, ARViewControllerDelegate {
         var gameState: GameState?
+        private let errorManager: ErrorManager
         private var isGameFieldReady = false
         private var arGameCoordinator: ARGameCoordinator?
+
+        init(errorManager: ErrorManager) {
+            self.errorManager = errorManager
+        }
 
         // MARK: - ARViewControllerDelegate
 
@@ -135,8 +142,7 @@ struct ARGameViewRepresentable: UIViewControllerRepresentable {
         func arViewController(_: ARViewController, didFailWithError error: Error) {
             print("AR error: \(error.localizedDescription)")
             Task { @MainActor in
-                gameState?.lastError = error
-                gameState?.isShowingError = true
+                errorManager.handleARError(error)
             }
         }
 
@@ -177,6 +183,13 @@ struct ARGameViewRepresentable: UIViewControllerRepresentable {
         func arViewController(_: ARViewController, didUpdatePlayerPosition _: Position3D) {
             // Player position is already updated in ARViewController
             // This is mainly for additional UI feedback if needed
+        }
+
+        func arViewControllerDidCompletePlaneDetection(_: ARViewController) {
+            // Hide plane detection guidance when plane is detected
+            Task { @MainActor in
+                errorManager.hideGuidance()
+            }
         }
     }
 }

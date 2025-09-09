@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @Bindable var gameState: GameState
+    @Bindable var tutorialManager: TutorialManager
 
     var body: some View {
         Form {
@@ -42,6 +43,22 @@ struct SettingsView: View {
             Section("オーディオ・触覚") {
                 Toggle("サウンド", isOn: $gameState.soundEnabled)
                 Toggle("触覚フィードバック", isOn: $gameState.hapticEnabled)
+            }
+
+            Section("チュートリアル・ヘルプ") {
+                Toggle("チュートリアルを表示", isOn: $tutorialManager.showTutorials)
+                Toggle("ヒントを表示", isOn: $tutorialManager.showHints)
+                Toggle("ガイダンスを表示", isOn: $tutorialManager.showGuidance)
+
+                Button("チュートリアルをリセット") {
+                    tutorialManager.resetTutorials()
+                }
+                .foregroundColor(.orange)
+
+                Button("ヘルプを表示") {
+                    tutorialManager.showHelp(HelpContent.gameHelp)
+                }
+                .foregroundColor(.blue)
             }
 
             Section("ゲーム統計") {
@@ -131,6 +148,6 @@ struct SettingsView: View {
 
 #Preview {
     NavigationStack {
-        SettingsView(gameState: GameState())
+        SettingsView(gameState: GameState(), tutorialManager: TutorialManager())
     }
 }

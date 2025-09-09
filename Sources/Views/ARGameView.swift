@@ -6,6 +6,8 @@ import SwiftUI
 
 struct ARGameView: View {
     @Bindable var gameState: GameState
+    let errorManager: ErrorManager
+    let tutorialManager: TutorialManager
     @Environment(\.dismiss) private var dismiss
     @State private var isARSupported = ARWorldTrackingConfiguration.isSupported
     @State private var showingGameResult = false
@@ -13,11 +15,11 @@ struct ARGameView: View {
     var body: some View {
         ZStack {
             if isARSupported {
-                ARGameViewRepresentable(gameState: gameState)
+                ARGameViewRepresentable(gameState: gameState, errorManager: errorManager)
                     .ignoresSafeArea()
 
                 // Game UI Overlay
-                GameUIOverlay(gameState: gameState, onEndGame: {
+                GameUIOverlay(gameState: gameState, tutorialManager: tutorialManager, onEndGame: {
                     Task {
                         await gameState.endGame()
                     }
@@ -33,24 +35,74 @@ struct ARGameView: View {
                 if gameState.currentPhase == .waiting {
                     WaitingStatusOverlay()
                 }
+
+                // AR Guidance Overlay
+                if tutorialManager.isShowingGuidance,
+                   let guidance = tutorialManager.currentGuidance {
+                    VStack {
+                        if guidance == .arPlaneDetection {
+                            ARPlaneDetectionGuidanceView {
+                                tutorialManager.hideGuidance()
+                            }
+                            .padding(.top, 100)
+                        } else {
+                            GuidanceOverlayView(
+                                guidance: guidance,
+                                message: tutorialManager.guidanceMessage,
+                                onDismiss: {
+                                    tutorialManager.hideGuidance()
+                                }
+                            )
+                            .padding(.top, 100)
+                        }
+                        Spacer()
+                    }
+                }
             } else {
                 ARNotSupportedView()
             }
         }
         .navigationBarHidden(true)
-        .alert("エラー", isPresented: $gameState.isShowingError) {
-            Button("OK") {
-                gameState.clearError()
-            }
-        } message: {
-            Text(gameState.lastError?.localizedDescription ?? "不明なエラーが発生しました")
-        }
         .sheet(isPresented: $showingGameResult) {
             GameResultView(gameState: gameState)
+        }
+        .overlay(alignment: .center) {
+            // チュートリアル表示
+            if tutorialManager.isShowingTutorial,
+               let currentStep = tutorialManager.currentTutorialStep {
+                TutorialView(
+                    step: currentStep,
+                    onNext: {
+                        tutorialManager.nextTutorialStep()
+                    },
+                    onPrevious: {
+                        tutorialManager.previousTutorialStep()
+                    },
+                    onSkip: {
+                        tutorialManager.skipTutorial()
+                    },
+                    onComplete: {
+                        tutorialManager.completeTutorial()
+                    }
+                )
+            }
         }
         .onChange(of: gameState.currentPhase) { _, newPhase in
             if newPhase == .finished {
                 showingGameResult = true
+            }
+        }
+        .onAppear {
+            // AR設定チュートリアルを表示
+            if !tutorialManager.isTutorialCompleted(.arSetup) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    tutorialManager.startTutorial(.arSetup)
+                }
+            }
+
+            // AR平面検出ガイダンスを表示
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                tutorialManager.showGuidance(.arPlaneDetection)
             }
         }
     }
@@ -61,6 +113,7 @@ struct ARGameView: View {
 /// Game UI overlay with timer, scores, and controls
 struct GameUIOverlay: View {
     let gameState: GameState
+    let tutorialManager: TutorialManager
     let onEndGame: () -> Void
     let onExit: () -> Void
 
@@ -86,6 +139,19 @@ struct GameUIOverlay: View {
                 if gameState.isGameActive {
                     GameTimerView(gameState: gameState)
                 }
+
+                // ヘルプボタン
+                Button(action: {
+                    tutorialManager.showHelp(HelpContent.gameHelp)
+                }) {
+                    Image(systemName: "questionmark.circle")
+                        .foregroundColor(.white)
+                        .font(.title2)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(Color.black.opacity(0.7))
+                .cornerRadius(8)
             }
             .padding()
 
@@ -309,5 +375,5 @@ struct ARNotSupportedView: View {
 }
 
 #Preview {
-    ARGameView(gameState: GameState())
+    ARGameView(gameState: GameState(), errorManager: ErrorManager(), tutorialManager: TutorialManager())
 }

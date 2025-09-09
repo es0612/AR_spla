@@ -1,4 +1,5 @@
 import ARKit
+import AVFoundation
 import Domain
 import RealityKit
 import UIKit
@@ -12,6 +13,7 @@ class ARViewController: UIViewController {
     private var arView: ARView!
     private var arGameCoordinator: ARGameCoordinator!
     private weak var gameState: GameState?
+    private weak var errorManager: ErrorManager?
 
     // Player shot tracking for cooldown
     private var playerLastShotTimes: [PlayerId: Date] = [:]
@@ -40,14 +42,46 @@ class ARViewController: UIViewController {
 
     // MARK: - Public Methods
 
-    /// Configure the AR controller with game state
-    func configure(with gameState: GameState) {
+    /// Configure the AR controller with game state and error manager
+    func configure(with gameState: GameState, errorManager: ErrorManager) {
         self.gameState = gameState
+        self.errorManager = errorManager
     }
 
     /// Start the AR session
     func startARSession() {
-        arGameCoordinator.startARSession()
+        // ARKitサポートチェック
+        guard ARWorldTrackingConfiguration.isSupported else {
+            errorManager?.handleError(.arUnsupportedDevice)
+            return
+        }
+
+        // カメラアクセス権限チェック
+        checkCameraPermission { [weak self] granted in
+            DispatchQueue.main.async {
+                if granted {
+                    self?.arGameCoordinator.startARSession()
+                } else {
+                    self?.errorManager?.handleError(.arCameraAccessDenied)
+                }
+            }
+        }
+    }
+
+    /// カメラアクセス権限をチェックする
+    private func checkCameraPermission(completion: @escaping (Bool) -> Void) {
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .authorized:
+            completion(true)
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .video) { granted in
+                completion(granted)
+            }
+        case .denied, .restricted:
+            completion(false)
+        @unknown default:
+            completion(false)
+        }
     }
 
     /// Stop the AR session
@@ -222,6 +256,8 @@ extension ARViewController: ARGameCoordinatorDelegate {
     }
 
     func arGameCoordinator(_: ARGameCoordinator, didFailWithError error: Error) {
+        // エラーマネージャーでARエラーを処理
+        errorManager?.handleARError(error)
         delegate?.arViewController(self, didFailWithError: error)
     }
 
@@ -247,6 +283,10 @@ extension ARViewController: ARGameCoordinatorDelegate {
             // Update collision detector with new position
             coordinator.updatePlayer(updatedPlayer)
         }
+    }
+
+    func arGameCoordinatorDidCompleteePlaneDetection(_: ARGameCoordinator) {
+        delegate?.arViewControllerDidCompletePlaneDetection(self)
     }
 
     func arGameCoordinator(_: ARGameCoordinator, didMergeInkSpots originalSpots: [InkSpot], into mergedSpot: InkSpot) {
@@ -296,4 +336,7 @@ protocol ARViewControllerDelegate: AnyObject {
     func arViewController(_ controller: ARViewController, didMergeInkSpots originalSpots: [InkSpot], into mergedSpot: InkSpot)
     func arViewController(_ controller: ARViewController, didCreateInkConflict newSpot: InkSpot, with existingSpot: InkSpot, overlapArea: Float)
     func arViewController(_ controller: ARViewController, didUpdatePlayerPosition position: Position3D)
+
+    // Guidance methods
+    func arViewControllerDidCompletePlaneDetection(_ controller: ARViewController)
 }

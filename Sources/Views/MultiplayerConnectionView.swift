@@ -5,6 +5,7 @@ import SwiftUI
 
 struct MultiplayerConnectionView: View {
     let gameState: GameState
+    let errorManager: ErrorManager
     @Environment(\.dismiss) private var dismiss
     @State private var isSearching = false
     @State private var foundPlayers: [String] = []
@@ -100,12 +101,43 @@ struct MultiplayerConnectionView: View {
 
     private func startSearching() {
         isSearching = true
-        // TODO: 実際のMultipeer Connectivity実装
 
+        // ネットワーク権限チェック（iOS 14+）
+        if #available(iOS 14.0, *) {
+            // 実際の実装では、Multipeer Connectivityの権限チェックを行う
+            // ここではシミュレーション
+            checkNetworkPermission { [self] granted in
+                DispatchQueue.main.async {
+                    if granted {
+                        performPlayerSearch()
+                    } else {
+                        isSearching = false
+                        errorManager.handleError(.networkPermissionDenied)
+                    }
+                }
+            }
+        } else {
+            performPlayerSearch()
+        }
+    }
+
+    private func checkNetworkPermission(completion: @escaping (Bool) -> Void) {
+        // 実際の実装では、ローカルネットワーク権限をチェック
+        // ここではシミュレーション
+        completion(true)
+    }
+
+    private func performPlayerSearch() {
         // デモ用のシミュレーション
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            foundPlayers = ["プレイヤー2", "プレイヤー3"]
-            isSearching = false
+            // ランダムに成功/失敗をシミュレート
+            if Bool.random() {
+                foundPlayers = ["プレイヤー2", "プレイヤー3"]
+                isSearching = false
+            } else {
+                isSearching = false
+                errorManager.handleError(.networkDiscoveryFailed)
+            }
         }
     }
 
@@ -113,23 +145,44 @@ struct MultiplayerConnectionView: View {
         isConnecting = true
 
         Task {
-            // Create demo players for testing
-            let currentPlayer = Player(
-                id: PlayerId(),
-                name: gameState.playerName,
-                color: PlayerColor.blue,
-                position: Position3D(x: 0, y: 0, z: 0)
-            )
+            do {
+                // 接続タイムアウトのシミュレーション
+                try await Task.sleep(nanoseconds: 3_000_000_000) // 3秒
 
-            let opponentPlayer = Player(
-                id: PlayerId(),
-                name: playerName,
-                color: PlayerColor.red,
-                position: Position3D(x: 2, y: 0, z: 0)
-            )
+                // ランダムに接続成功/失敗をシミュレート
+                if Bool.random() {
+                    // 接続成功
+                    let currentPlayer = Player(
+                        id: PlayerId(),
+                        name: gameState.playerName,
+                        color: PlayerColor.blue,
+                        position: Position3D(x: 0, y: 0, z: 0)
+                    )
 
-            await gameState.startGame(with: [currentPlayer, opponentPlayer])
-            isConnecting = false
+                    let opponentPlayer = Player(
+                        id: PlayerId(),
+                        name: playerName,
+                        color: PlayerColor.red,
+                        position: Position3D(x: 2, y: 0, z: 0)
+                    )
+
+                    await gameState.startGame(with: [currentPlayer, opponentPlayer])
+                } else {
+                    // 接続失敗
+                    await MainActor.run {
+                        errorManager.handleError(.networkConnectionFailed(reason: "接続タイムアウト"))
+                    }
+                }
+
+                await MainActor.run {
+                    isConnecting = false
+                }
+            } catch {
+                await MainActor.run {
+                    isConnecting = false
+                    errorManager.handleNetworkError(error)
+                }
+            }
         }
     }
 }
@@ -165,5 +218,5 @@ struct PlayerConnectionRow: View {
 }
 
 #Preview {
-    MultiplayerConnectionView(gameState: GameState())
+    MultiplayerConnectionView(gameState: GameState(), errorManager: ErrorManager())
 }
