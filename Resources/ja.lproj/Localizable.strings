@@ -1,0 +1,169 @@
+/* 
+  Localizable.strings (Japanese)
+  ARSplatoonGame
+*/
+
+// MARK: - App General
+"app_name" = "ARスプラトゥーン";
+"ok" = "OK";
+"cancel" = "キャンセル";
+"close" = "閉じる";
+"back" = "戻る";
+"next" = "次へ";
+"done" = "完了";
+"retry" = "再試行";
+"loading" = "読み込み中...";
+
+// MARK: - Menu
+"menu_title" = "メインメニュー";
+"start_game" = "ゲーム開始";
+"settings" = "設定";
+"tutorial" = "チュートリアル";
+"game_history" = "ゲーム履歴";
+"about" = "このアプリについて";
+
+// MARK: - Game
+"game_title" = "ARスプラトゥーン対戦";
+"waiting_for_opponent" = "対戦相手を待っています...";
+"connecting" = "接続中...";
+"game_starting" = "ゲーム開始！";
+"game_over" = "ゲーム終了";
+"you_win" = "あなたの勝利！";
+"you_lose" = "あなたの負け";
+"draw" = "引き分け";
+"time_remaining" = "残り時間: %@";
+"your_score" = "あなたのスコア: %.1f%%";
+"opponent_score" = "相手のスコア: %.1f%%";
+"final_score" = "最終スコア";
+
+// MARK: - AR
+"ar_session_starting" = "ARセッションを開始しています...";
+"ar_plane_detection" = "平面を検出中...";
+"ar_tap_to_place_field" = "タップしてゲームフィールドを配置してください";
+"ar_field_placed" = "ゲームフィールドが配置されました";
+"ar_tracking_limited" = "ARトラッキングが制限されています";
+"ar_move_device" = "デバイスをゆっくり動かしてください";
+
+// MARK: - Multiplayer
+"multiplayer_title" = "マルチプレイヤー";
+"searching_players" = "プレイヤーを検索中...";
+"found_player" = "プレイヤーが見つかりました: %@";
+"connection_established" = "接続が確立されました";
+"connection_lost" = "接続が切断されました";
+"reconnecting" = "再接続中...";
+"invite_sent" = "招待を送信しました";
+"invite_received" = "%@から招待を受信しました";
+"accept_invite" = "招待を受け入れる";
+"decline_invite" = "招待を断る";
+
+// MARK: - Settings
+"settings_title" = "設定";
+"game_settings" = "ゲーム設定";
+"ar_settings" = "AR設定";
+"audio_settings" = "オーディオ設定";
+"privacy_settings" = "プライバシー設定";
+"accessibility_settings" = "アクセシビリティ設定";
+"language_settings" = "言語設定";
+"game_duration" = "ゲーム時間";
+"ink_shot_cooldown" = "インク発射間隔";
+"player_stun_duration" = "プレイヤー無効化時間";
+"field_size" = "フィールドサイズ";
+"sound_effects" = "効果音";
+"background_music" = "BGM";
+"haptic_feedback" = "触覚フィードバック";
+
+// MARK: - Tutorial
+"tutorial_title" = "チュートリアル";
+"tutorial_welcome" = "ARスプラトゥーンへようこそ！";
+"tutorial_ar_setup" = "AR設定";
+"tutorial_ar_setup_desc" = "デバイスを水平面に向けて、ゲームフィールドを配置しましょう";
+"tutorial_controls" = "操作方法";
+"tutorial_controls_desc" = "画面をタップしてインクを発射します";
+"tutorial_objective" = "ゲーム目標";
+"tutorial_objective_desc" = "制限時間内により多くの陣地を塗りつぶしましょう";
+"tutorial_multiplayer" = "マルチプレイヤー";
+"tutorial_multiplayer_desc" = "近くの友達と対戦できます";
+"skip_tutorial" = "チュートリアルをスキップ";
+
+// MARK: - Errors
+"error_title" = "エラー";
+"error_ar_not_supported" = "このデバイスはARをサポートしていません";
+"error_ar_session_failed" = "ARセッションの開始に失敗しました";
+"error_ar_tracking_failed" = "ARトラッキングに失敗しました";
+"error_network_connection_failed" = "ネットワーク接続に失敗しました";
+"error_peer_disconnected" = "相手プレイヤーとの接続が切断されました";
+"error_game_sync_failed" = "ゲーム同期に失敗しました";
+"error_unknown" = "不明なエラーが発生しました";
+
+// MARK: - Accessibility
+"accessibility_ink_gun" = "インクガン";
+"accessibility_game_field" = "ゲームフィールド";
+"accessibility_ink_spot" = "インクスポット";
+"accessibility_player_position" = "プレイヤー位置";
+"accessibility_score_display" = "スコア表示";
+"accessibility_timer" = "タイマー";
+"accessibility_menu_button" = "メニューボタン";
+"accessibility_settings_button" = "設定ボタン";
+
+// MARK: - Privacy
+"privacy_title" = "プライバシー";
+"privacy_camera_usage" = "カメラの使用";
+"privacy_camera_desc" = "ARゲームのためにカメラを使用します";
+"privacy_network_usage" = "ネットワークの使用";
+"privacy_network_desc" = "近くのプレイヤーとの対戦のためにローカルネットワークを使用します";
+"privacy_data_collection" = "データ収集";
+"privacy_data_desc" = "ゲーム統計とパフォーマンス向上のためのデータを収集します";
+
+// MARK: - Game History
+"history_title" = "ゲーム履歴";
+"history_no_games" = "まだゲーム履歴がありません";
+"history_wins" = "勝利: %d";
+"history_losses" = "敗北: %d";
+"history_draws" = "引き分け: %d";
+"history_total_games" = "総ゲーム数: %d";
+"history_win_rate" = "勝率: %.1f%%";
+"history_average_score" = "平均スコア: %.1f%%";
+
+// MARK: - Date and Time
+"date_format" = "yyyy年MM月dd日";
+"time_format" = "HH:mm:ss";
+"duration_minutes" = "%d分";
+"duration_seconds" = "%d秒";
+"duration_minutes_seconds" = "%d分%d秒";
+
+// MARK: - Numbers
+"percentage_format" = "%.1f%%";
+"score_format" = "%.1f";
+"integer_format" = "%d";
+
+// MARK: - Language Settings
+"current_language" = "現在の言語";
+"available_languages" = "利用可能な言語";
+"rtl_support_info" = "RTL言語サポート";
+"rtl_support_description" = "アラビア語やヘブライ語などの右から左に読む言語をサポートしています";
+"rtl_demo" = "RTLデモ";
+"rtl_demo_text" = "この文字は右から左に表示されます";
+
+// MARK: - Menu Additional
+"singleplayer_title" = "シングルプレイヤー";
+"feature_coming_soon" = "現在開発中のため利用できません";
+"game_in_progress" = "ゲーム中のため利用できません";
+"multiplayer_hint" = "近くのプレイヤーとの対戦を開始します";
+"return_to_game" = "ゲームに戻る";
+"ar_test" = "ARテスト";
+"return_to_game_hint" = "現在進行中のゲームに戻ります";
+"ar_test_hint" = "ARカメラを使用してゲーム機能をテストします";
+"new_game" = "新しいゲーム";
+"feedback" = "フィードバック";
+"help" = "ヘルプ";
+
+// MARK: - Game Status
+"status_waiting" = "待機中";
+"status_connecting" = "接続中...";
+"status_playing" = "ゲーム中";
+"status_finished" = "ゲーム終了";
+"coverage_rate" = "カバー率: %d%%";
+"player_count" = "プレイヤー: %d人";
+
+// MARK: - App Description
+"app_description" = "ARでスプラトゥーン風対戦ゲーム";

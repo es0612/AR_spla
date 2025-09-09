@@ -133,6 +133,19 @@ struct SettingsView: View {
                 Toggle("触覚フィードバック", isOn: $gameState.hapticEnabled)
             }
 
+            Section("言語・地域") {
+                NavigationLink(destination: LanguageSettingsView()) {
+                    HStack {
+                        Image(systemName: "globe")
+                            .foregroundColor(.blue)
+                        Text("言語設定")
+                        Spacer()
+                        Text(LocalizationManager.shared.currentLanguageDisplayName)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+
             Section("アクセシビリティ・プライバシー") {
                 NavigationLink(destination: AccessibilitySettingsView()) {
                     HStack {

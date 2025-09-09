@@ -8,20 +8,22 @@ struct MenuView: View {
     let tutorialManager: TutorialManager
     @State private var isSearchingForPlayers = false
     @State private var accessibilityManager = AccessibilityManager()
+    @Environment(\.localization) private var localization
 
     var body: some View {
-        VStack(spacing: 30) {
-            Text("ゲームメニュー")
+        RTLVStack(spacing: 30) {
+            Text("menu_title".localized)
                 .font(.system(size: accessibilityManager.accessibleFontSize(base: 34), weight: .bold))
                 .accessibilityAddTraits(.isHeader)
-                .accessibilityLabel("ARスプラトゥーンゲーム メインメニュー")
+                .accessibilityLabel("app_name".localized + " " + "menu_title".localized)
+                .rtlTextAlignment()
 
             // Game Status Display
             if gameState.currentPhase != .waiting {
                 GameStatusCard(gameState: gameState)
             }
 
-            VStack(spacing: 20) {
+            RTLVStack(spacing: 20) {
                 Button(action: {
                     accessibilityManager.performHapticFeedback(.light)
                     accessibilityManager.performAudioFeedback(.gameStart)
@@ -32,10 +34,11 @@ struct MenuView: View {
                         isSearchingForPlayers = true
                     }
                 }) {
-                    HStack {
+                    RTLHStack {
                         Image(systemName: "person.2.fill")
                             .accessibilityHidden(true)
-                        Text("マルチプレイヤー")
+                            .rtlIconFlip()
+                        Text("multiplayer_title".localized)
                     }
                     .font(.system(size: accessibilityManager.accessibleFontSize(base: 20), weight: .semibold))
                     .foregroundColor(.white)
@@ -45,17 +48,18 @@ struct MenuView: View {
                     .cornerRadius(12)
                 }
                 .disabled(gameState.isConnecting || gameState.isGameActive)
-                .accessibilityLabel("マルチプレイヤーゲームを開始")
-                .accessibilityHint(gameState.isConnecting ? "現在接続中です" : gameState.isGameActive ? "ゲーム中のため利用できません" : "近くのプレイヤーとの対戦を開始します")
+                .accessibilityLabel("start_game".localized)
+                .accessibilityHint(gameState.isConnecting ? "connecting".localized : gameState.isGameActive ? "game_in_progress".localized : "multiplayer_hint".localized)
                 .accessibilityAddTraits(gameState.isConnecting || gameState.isGameActive ? .notEnabled : .isButton)
 
                 Button(action: {
                     // TODO: シングルプレイヤー機能（将来実装）
                 }) {
-                    HStack {
+                    RTLHStack {
                         Image(systemName: "person.fill")
                             .accessibilityHidden(true)
-                        Text("シングルプレイヤー")
+                            .rtlIconFlip()
+                        Text("singleplayer_title".localized)
                     }
                     .font(.system(size: accessibilityManager.accessibleFontSize(base: 20), weight: .semibold))
                     .foregroundColor(.gray)
@@ -65,15 +69,16 @@ struct MenuView: View {
                     .cornerRadius(12)
                 }
                 .disabled(true)
-                .accessibilityLabel("シングルプレイヤーゲーム")
-                .accessibilityHint("現在開発中のため利用できません")
+                .accessibilityLabel("singleplayer_title".localized)
+                .accessibilityHint("feature_coming_soon".localized)
                 .accessibilityAddTraits(.notEnabled)
 
                 NavigationLink(destination: ARGameView(gameState: gameState, errorManager: errorManager, tutorialManager: tutorialManager)) {
-                    HStack {
+                    RTLHStack {
                         Image(systemName: "arkit")
                             .accessibilityHidden(true)
-                        Text(gameState.isGameActive ? "ゲームに戻る" : "ARテスト")
+                            .rtlIconFlip()
+                        Text(gameState.isGameActive ? "return_to_game".localized : "ar_test".localized)
                     }
                     .font(.system(size: accessibilityManager.accessibleFontSize(base: 20), weight: .semibold))
                     .foregroundColor(.white)
@@ -82,16 +87,17 @@ struct MenuView: View {
                     .background(accessibilityManager.accessibleColor(for: gameState.isGameActive ? Color.blue : Color.orange))
                     .cornerRadius(12)
                 }
-                .accessibilityLabel(gameState.isGameActive ? "進行中のゲームに戻る" : "ARゲーム機能をテスト")
-                .accessibilityHint(gameState.isGameActive ? "現在進行中のゲームに戻ります" : "ARカメラを使用してゲーム機能をテストします")
+                .accessibilityLabel(gameState.isGameActive ? "return_to_game".localized : "ar_test".localized)
+                .accessibilityHint(gameState.isGameActive ? "return_to_game_hint".localized : "ar_test_hint".localized)
 
                 if gameState.currentPhase == .finished {
                     Button(action: {
                         gameState.resetGame()
                     }) {
-                        HStack {
+                        RTLHStack {
                             Image(systemName: "arrow.clockwise")
-                            Text("新しいゲーム")
+                                .rtlIconFlip()
+                            Text("new_game".localized)
                         }
                         .font(.title2)
                         .fontWeight(.semibold)
@@ -105,9 +111,10 @@ struct MenuView: View {
 
                 // フィードバックボタン
                 NavigationLink(destination: GameFeedbackView(feedbackManager: gameState.feedbackManager)) {
-                    HStack {
+                    RTLHStack {
                         Image(systemName: "star.bubble")
-                        Text("フィードバック")
+                            .rtlIconFlip()
+                        Text("feedback".localized)
                     }
                     .font(.title2)
                     .fontWeight(.semibold)
@@ -122,9 +129,10 @@ struct MenuView: View {
                 Button(action: {
                     tutorialManager.showHelp(HelpContent.gameHelp)
                 }) {
-                    HStack {
+                    RTLHStack {
                         Image(systemName: "questionmark.circle")
-                        Text("ヘルプ")
+                            .rtlIconFlip()
+                        Text("help".localized)
                     }
                     .font(.title2)
                     .fontWeight(.semibold)
@@ -139,9 +147,10 @@ struct MenuView: View {
 
             Spacer()
         }
-        .padding()
-        .navigationTitle("メニュー")
+        .rtlPadding(leading: 16, trailing: 16, top: 16, bottom: 16)
+        .navigationTitle("menu_title".localized)
         .navigationBarTitleDisplayMode(.inline)
+        .rtlEnvironment()
         .sheet(isPresented: $isSearchingForPlayers) {
             MultiplayerConnectionView(gameState: gameState, errorManager: errorManager)
         }
@@ -182,40 +191,46 @@ struct GameStatusCard: View {
     let gameState: GameState
 
     var body: some View {
-        VStack(spacing: 8) {
-            HStack {
+        RTLVStack(spacing: 8) {
+            RTLHStack {
                 Image(systemName: statusIcon)
                     .foregroundColor(statusColor)
+                    .rtlIconFlip()
                 Text(statusText)
                     .font(.headline)
                     .foregroundColor(statusColor)
+                    .rtlTextAlignment()
                 Spacer()
             }
 
             if gameState.isGameActive {
-                HStack {
-                    Text("残り時間: \(gameState.formattedRemainingTime)")
+                RTLHStack {
+                    Text("time_remaining".localized(with: gameState.formattedRemainingTime))
                         .font(.subheadline)
+                        .rtlTextAlignment()
                     Spacer()
-                    Text("カバー率: \(gameState.coveragePercentage)%")
+                    Text("coverage_rate".localized(with: gameState.coveragePercentage))
                         .font(.subheadline)
+                        .rtlTextAlignment()
                 }
                 .foregroundColor(.secondary)
             }
 
             if !gameState.players.isEmpty {
-                HStack {
-                    Text("プレイヤー: \(gameState.players.count)人")
+                RTLHStack {
+                    Text("player_count".localized(with: gameState.players.count))
                         .font(.subheadline)
                         .foregroundColor(.secondary)
+                        .rtlTextAlignment()
                     Spacer()
                 }
             }
         }
-        .padding()
+        .rtlPadding(leading: 16, trailing: 16, top: 16, bottom: 16)
         .background(Color(.systemGray6))
         .cornerRadius(12)
-        .padding(.horizontal)
+        .rtlPadding(leading: 16, trailing: 16)
+        .rtlEnvironment()
     }
 
     private var statusIcon: String {
@@ -247,13 +262,13 @@ struct GameStatusCard: View {
     private var statusText: String {
         switch gameState.currentPhase {
         case .waiting:
-            return "待機中"
+            return "status_waiting".localized
         case .connecting:
-            return "接続中..."
+            return "status_connecting".localized
         case .playing:
-            return "ゲーム中"
+            return "status_playing".localized
         case .finished:
-            return "ゲーム終了"
+            return "status_finished".localized
         }
     }
 }

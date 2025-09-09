@@ -4,21 +4,24 @@ struct ContentView: View {
     @State private var gameState = GameState()
     @State private var errorManager = ErrorManager()
     @State private var tutorialManager = TutorialManager()
+    @State private var localizationManager = LocalizationManager.shared
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 30) {
-                Text("AR Splatoon")
+            RTLVStack(spacing: 30) {
+                Text("app_name".localized)
                     .font(.largeTitle)
                     .fontWeight(.bold)
+                    .rtlTextAlignment()
 
-                Text("ARでスプラトゥーン風対戦ゲーム")
+                Text("app_description".localized)
                     .font(.headline)
                     .foregroundColor(.secondary)
+                    .rtlTextAlignment()
 
-                VStack(spacing: 20) {
+                RTLVStack(spacing: 20) {
                     NavigationLink(destination: MenuView(gameState: gameState, errorManager: errorManager, tutorialManager: tutorialManager)) {
-                        Text("ゲーム開始")
+                        Text("start_game".localized)
                             .font(.title2)
                             .fontWeight(.semibold)
                             .foregroundColor(.white)
@@ -26,10 +29,11 @@ struct ContentView: View {
                             .padding()
                             .background(Color.blue)
                             .cornerRadius(12)
+                            .rtlTextAlignment()
                     }
 
                     NavigationLink(destination: SettingsView(gameState: gameState, tutorialManager: tutorialManager)) {
-                        Text("設定")
+                        Text("settings".localized)
                             .font(.title2)
                             .fontWeight(.semibold)
                             .foregroundColor(.blue)
@@ -37,9 +41,10 @@ struct ContentView: View {
                             .padding()
                             .background(Color.blue.opacity(0.1))
                             .cornerRadius(12)
+                            .rtlTextAlignment()
                     }
 
-                    Button("チュートリアル") {
+                    Button("tutorial".localized) {
                         tutorialManager.startTutorial(.firstLaunch)
                     }
                     .font(.title2)
@@ -50,13 +55,15 @@ struct ContentView: View {
                     .background(Color.green.opacity(0.1))
                     .cornerRadius(12)
                 }
-                .padding(.horizontal)
+                .rtlPadding(leading: 16, trailing: 16)
 
                 Spacer()
             }
-            .padding()
+            .rtlPadding(leading: 16, trailing: 16, top: 16, bottom: 16)
             .navigationBarHidden(true)
+            .rtlEnvironment()
         }
+        .environment(\.localization, localizationManager)
         .overlay(alignment: .center) {
             // エラーダイアログ
             if errorManager.isShowingError,

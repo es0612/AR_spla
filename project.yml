@@ -4,6 +4,10 @@ options:
   deploymentTarget:
     iOS: "17.0"
   developmentLanguage: ja
+  knownRegions:
+    - ja
+    - en
+    - Base
   
 settings:
   base:

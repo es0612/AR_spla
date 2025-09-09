@@ -1,0 +1,169 @@
+/* 
+  Localizable.strings (English)
+  ARSplatoonGame
+*/
+
+// MARK: - App General
+"app_name" = "AR Splatoon";
+"ok" = "OK";
+"cancel" = "Cancel";
+"close" = "Close";
+"back" = "Back";
+"next" = "Next";
+"done" = "Done";
+"retry" = "Retry";
+"loading" = "Loading...";
+
+// MARK: - Menu
+"menu_title" = "Main Menu";
+"start_game" = "Start Game";
+"settings" = "Settings";
+"tutorial" = "Tutorial";
+"game_history" = "Game History";
+"about" = "About";
+
+// MARK: - Game
+"game_title" = "AR Splatoon Battle";
+"waiting_for_opponent" = "Waiting for opponent...";
+"connecting" = "Connecting...";
+"game_starting" = "Game Starting!";
+"game_over" = "Game Over";
+"you_win" = "You Win!";
+"you_lose" = "You Lose";
+"draw" = "Draw";
+"time_remaining" = "Time Remaining: %@";
+"your_score" = "Your Score: %.1f%%";
+"opponent_score" = "Opponent Score: %.1f%%";
+"final_score" = "Final Score";
+
+// MARK: - AR
+"ar_session_starting" = "Starting AR session...";
+"ar_plane_detection" = "Detecting planes...";
+"ar_tap_to_place_field" = "Tap to place the game field";
+"ar_field_placed" = "Game field placed";
+"ar_tracking_limited" = "AR tracking is limited";
+"ar_move_device" = "Move your device slowly";
+
+// MARK: - Multiplayer
+"multiplayer_title" = "Multiplayer";
+"searching_players" = "Searching for players...";
+"found_player" = "Found player: %@";
+"connection_established" = "Connection established";
+"connection_lost" = "Connection lost";
+"reconnecting" = "Reconnecting...";
+"invite_sent" = "Invite sent";
+"invite_received" = "Invite received from %@";
+"accept_invite" = "Accept Invite";
+"decline_invite" = "Decline Invite";
+
+// MARK: - Settings
+"settings_title" = "Settings";
+"game_settings" = "Game Settings";
+"ar_settings" = "AR Settings";
+"audio_settings" = "Audio Settings";
+"privacy_settings" = "Privacy Settings";
+"accessibility_settings" = "Accessibility Settings";
+"language_settings" = "Language Settings";
+"game_duration" = "Game Duration";
+"ink_shot_cooldown" = "Ink Shot Cooldown";
+"player_stun_duration" = "Player Stun Duration";
+"field_size" = "Field Size";
+"sound_effects" = "Sound Effects";
+"background_music" = "Background Music";
+"haptic_feedback" = "Haptic Feedback";
+
+// MARK: - Tutorial
+"tutorial_title" = "Tutorial";
+"tutorial_welcome" = "Welcome to AR Splatoon!";
+"tutorial_ar_setup" = "AR Setup";
+"tutorial_ar_setup_desc" = "Point your device at a horizontal surface to place the game field";
+"tutorial_controls" = "Controls";
+"tutorial_controls_desc" = "Tap the screen to shoot ink";
+"tutorial_objective" = "Objective";
+"tutorial_objective_desc" = "Paint more territory than your opponent within the time limit";
+"tutorial_multiplayer" = "Multiplayer";
+"tutorial_multiplayer_desc" = "Battle with nearby friends";
+"skip_tutorial" = "Skip Tutorial";
+
+// MARK: - Errors
+"error_title" = "Error";
+"error_ar_not_supported" = "This device does not support AR";
+"error_ar_session_failed" = "Failed to start AR session";
+"error_ar_tracking_failed" = "AR tracking failed";
+"error_network_connection_failed" = "Network connection failed";
+"error_peer_disconnected" = "Peer disconnected";
+"error_game_sync_failed" = "Game synchronization failed";
+"error_unknown" = "An unknown error occurred";
+
+// MARK: - Accessibility
+"accessibility_ink_gun" = "Ink gun";
+"accessibility_game_field" = "Game field";
+"accessibility_ink_spot" = "Ink spot";
+"accessibility_player_position" = "Player position";
+"accessibility_score_display" = "Score display";
+"accessibility_timer" = "Timer";
+"accessibility_menu_button" = "Menu button";
+"accessibility_settings_button" = "Settings button";
+
+// MARK: - Privacy
+"privacy_title" = "Privacy";
+"privacy_camera_usage" = "Camera Usage";
+"privacy_camera_desc" = "Camera is used for AR gaming experience";
+"privacy_network_usage" = "Network Usage";
+"privacy_network_desc" = "Local network is used for multiplayer battles with nearby players";
+"privacy_data_collection" = "Data Collection";
+"privacy_data_desc" = "We collect game statistics and performance data for improvement";
+
+// MARK: - Game History
+"history_title" = "Game History";
+"history_no_games" = "No game history yet";
+"history_wins" = "Wins: %d";
+"history_losses" = "Losses: %d";
+"history_draws" = "Draws: %d";
+"history_total_games" = "Total Games: %d";
+"history_win_rate" = "Win Rate: %.1f%%";
+"history_average_score" = "Average Score: %.1f%%";
+
+// MARK: - Date and Time
+"date_format" = "MMM dd, yyyy";
+"time_format" = "HH:mm:ss";
+"duration_minutes" = "%d min";
+"duration_seconds" = "%d sec";
+"duration_minutes_seconds" = "%d min %d sec";
+
+// MARK: - Numbers
+"percentage_format" = "%.1f%%";
+"score_format" = "%.1f";
+"integer_format" = "%d";
+
+// MARK: - Language Settings
+"current_language" = "Current Language";
+"available_languages" = "Available Languages";
+"rtl_support_info" = "RTL Language Support";
+"rtl_support_description" = "Supports right-to-left languages such as Arabic and Hebrew";
+"rtl_demo" = "RTL Demo";
+"rtl_demo_text" = "This text is displayed from right to left";
+
+// MARK: - Menu Additional
+"singleplayer_title" = "Single Player";
+"feature_coming_soon" = "Feature coming soon";
+"game_in_progress" = "Game in progress, unavailable";
+"multiplayer_hint" = "Start a battle with nearby players";
+"return_to_game" = "Return to Game";
+"ar_test" = "AR Test";
+"return_to_game_hint" = "Return to the current game in progress";
+"ar_test_hint" = "Test AR game features using the camera";
+"new_game" = "New Game";
+"feedback" = "Feedback";
+"help" = "Help";
+
+// MARK: - Game Status
+"status_waiting" = "Waiting";
+"status_connecting" = "Connecting...";
+"status_playing" = "Playing";
+"status_finished" = "Finished";
+"coverage_rate" = "Coverage: %d%%";
+"player_count" = "Players: %d";
+
+// MARK: - App Description
+"app_description" = "AR Splatoon-style Battle Game";
