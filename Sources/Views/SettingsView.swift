@@ -144,6 +144,17 @@ struct SettingsView: View {
                             .foregroundColor(.secondary)
                     }
                 }
+
+                NavigationLink(destination: RegionalSettingsView()) {
+                    HStack {
+                        Image(systemName: "location")
+                            .foregroundColor(.orange)
+                        Text("地域設定")
+                        Spacer()
+                        Text(RegionalSettingsManager.shared.currentRegion.displayName)
+                            .foregroundColor(.secondary)
+                    }
+                }
             }
 
             Section("アクセシビリティ・プライバシー") {

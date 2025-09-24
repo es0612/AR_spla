@@ -98,6 +98,7 @@ public class GameBalanceSettings {
     public init() {
         loadSettings()
         applyDifficultySettings()
+        applyRegionalAdjustments()
     }
 
     // MARK: - 難易度設定の適用
@@ -220,6 +221,21 @@ public class GameBalanceSettings {
     public func resetToDefaults() {
         difficultyLevel = .normal
         applyDifficultySettings()
+        applyRegionalAdjustments()
+        saveSettings()
+    }
+
+    // MARK: - 地域別調整
+
+    /// 地域設定に基づいてゲームバランスを調整
+    private func applyRegionalAdjustments() {
+        let regionalSettings = RegionalSettingsManager.shared
+        regionalSettings.adjustGameBalance(self)
+    }
+
+    /// 地域設定の変更を反映
+    public func updateForRegionalSettings() {
+        applyRegionalAdjustments()
         saveSettings()
     }
 

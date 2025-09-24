@@ -166,4 +166,74 @@
 "player_count" = "Players: %d";
 
 // MARK: - App Description
-"app_description" = "AR Splatoon-style Battle Game";
+"app_description" = "AR Splatoon-style Battle Game";// MARK: - 
+Regional Settings
+"regional_settings" = "Regional Settings";
+"region" = "Region";
+"cultural_considerations" = "Cultural Considerations";
+"violence_level" = "Violence Level";
+"violence_minimal" = "Minimal";
+"violence_moderate" = "Moderate";
+"violence_standard" = "Standard";
+"color_blindness_support" = "Color Blindness Support";
+"culturally_appropriate_colors" = "Culturally Appropriate Colors";
+"religious_considerations" = "Religious Considerations";
+
+// MARK: - Age Rating
+"age_rating" = "Age Rating";
+"age_verification" = "Age Verification";
+"all_ages" = "All Ages";
+"ages_10_plus" = "Ages 10+";
+"ages_13_plus" = "Ages 13+";
+"ages_17_plus" = "Ages 17+";
+
+// MARK: - Privacy and Data
+"privacy_and_data" = "Privacy and Data";
+"data_collection_restricted" = "Data Collection Restricted";
+"advertising_restricted" = "Advertising Restricted";
+"social_features_restricted" = "Social Features Restricted";
+"privacy_policy" = "Privacy Policy";
+"terms_of_service" = "Terms of Service";
+
+// MARK: - Play Time Management
+"play_time_management" = "Play Time Management";
+"recommended_play_time" = "Recommended Play Time";
+"break_recommendation_interval" = "Break Recommendation Interval";
+"current_session" = "Current Session";
+"today_total" = "Today's Total";
+"week_total" = "This Week's Total";
+"month_total" = "This Month's Total";
+
+// MARK: - Play Time Warnings
+"break_recommendation_title" = "Break Recommended";
+"time_limit_title" = "Continuous Play Time Limit";
+"regional_restriction_title" = "Regional Usage Restriction";
+"daily_limit_title" = "Daily Usage Limit Reached";
+"take_5_minute_break" = "Take 5 Minute Break";
+"take_10_minute_break" = "Take 10 Minute Break";
+"continue_playing" = "Continue Playing";
+"take_break" = "Take Break";
+"end_game_session" = "End Game";
+"check_settings" = "Check Settings";
+
+// MARK: - Compliance
+"compliance_information" = "Compliance Information";
+"coppa_compliance" = "COPPA Compliance";
+"gdpr_compliance" = "GDPR Compliance";
+"age_verification_status" = "Age Verification";
+"cultural_consideration_status" = "Cultural Considerations";
+
+// MARK: - Regional Messages
+"region_japan" = "Japan";
+"region_united_states" = "United States";
+"region_europe" = "Europe";
+"region_korea" = "Korea";
+"region_china" = "China";
+"region_global" = "Global";
+
+"cultural_message_china" = "Color usage is restricted considering Chinese cultural background.";
+"cultural_message_korea" = "Certain color combinations are avoided considering Korean cultural background.";
+"cultural_message_japan" = "Color selection considers Japanese cultural background.";
+"cultural_message_europe" = "Color selection complies with European accessibility standards.";
+"cultural_message_us" = "Color selection considers diversity and inclusion.";
+"cultural_message_global" = "Color selection considers global cultural considerations.";

@@ -167,3 +167,74 @@
 
 // MARK: - App Description
 "app_description" = "ARでスプラトゥーン風対戦ゲーム";
+//
+ MARK: - 地域設定
+"regional_settings" = "地域設定";
+"region" = "地域";
+"cultural_considerations" = "文化的配慮";
+"violence_level" = "暴力表現レベル";
+"violence_minimal" = "最小限";
+"violence_moderate" = "控えめ";
+"violence_standard" = "標準";
+"color_blindness_support" = "色覚配慮";
+"culturally_appropriate_colors" = "文化的に適切な色の使用";
+"religious_considerations" = "宗教的配慮";
+
+// MARK: - 年齢レーティング
+"age_rating" = "年齢レーティング";
+"age_verification" = "年齢確認";
+"all_ages" = "全年齢";
+"ages_10_plus" = "10歳以上";
+"ages_13_plus" = "13歳以上";
+"ages_17_plus" = "17歳以上";
+
+// MARK: - プライバシーとデータ
+"privacy_and_data" = "プライバシーとデータ";
+"data_collection_restricted" = "データ収集制限";
+"advertising_restricted" = "広告表示制限";
+"social_features_restricted" = "ソーシャル機能制限";
+"privacy_policy" = "プライバシーポリシー";
+"terms_of_service" = "利用規約";
+
+// MARK: - プレイ時間管理
+"play_time_management" = "プレイ時間管理";
+"recommended_play_time" = "推奨プレイ時間";
+"break_recommendation_interval" = "休憩推奨間隔";
+"current_session" = "現在のセッション";
+"today_total" = "今日の合計";
+"week_total" = "今週の合計";
+"month_total" = "今月の合計";
+
+// MARK: - プレイ時間警告
+"break_recommendation_title" = "休憩をお勧めします";
+"time_limit_title" = "連続プレイ時間の制限";
+"regional_restriction_title" = "地域制限による利用制限";
+"daily_limit_title" = "1日の利用制限に達しました";
+"take_5_minute_break" = "5分休憩する";
+"take_10_minute_break" = "10分休憩する";
+"continue_playing" = "続けてプレイする";
+"take_break" = "休憩する";
+"end_game_session" = "ゲームを終了";
+"check_settings" = "設定を確認";
+
+// MARK: - コンプライアンス
+"compliance_information" = "コンプライアンス情報";
+"coppa_compliance" = "COPPA準拠";
+"gdpr_compliance" = "GDPR準拠";
+"age_verification_status" = "年齢確認";
+"cultural_consideration_status" = "文化的配慮";
+
+// MARK: - 地域別メッセージ
+"region_japan" = "日本";
+"region_united_states" = "アメリカ";
+"region_europe" = "ヨーロッパ";
+"region_korea" = "韓国";
+"region_china" = "中国";
+"region_global" = "グローバル";
+
+"cultural_message_china" = "中国の文化的背景を考慮し、一部の色の使用を制限しています。";
+"cultural_message_korea" = "韓国の文化的背景を考慮し、特定の色の組み合わせを避けています。";
+"cultural_message_japan" = "日本の文化的背景を考慮した色選択を行っています。";
+"cultural_message_europe" = "ヨーロッパのアクセシビリティ基準に準拠した色選択を行っています。";
+"cultural_message_us" = "多様性への配慮を考慮した色選択を行っています。";
+"cultural_message_global" = "グローバルな文化的配慮を考慮した色選択を行っています。";
