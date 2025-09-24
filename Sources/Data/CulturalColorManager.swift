@@ -96,7 +96,7 @@ class CulturalColorManager {
         let redColor = UIColor.systemRed
         let whiteColor = UIColor.white
         let blackColor = UIColor.black
-        let greenColor = UIColor.systemGreen
+        _ = UIColor.systemGreen
 
         // 中国での問題のある組み合わせ
         culturallyProblematicCombinations.insert(
@@ -156,14 +156,14 @@ class CulturalColorManager {
         }
 
         // 組み合わせをチェック
-        let combination1 = ColorCombination(
+        _ = ColorCombination(
             color1: color1,
             color2: color2,
             region: regionalSettings.currentRegion,
             reason: ""
         )
 
-        let combination2 = ColorCombination(
+        _ = ColorCombination(
             color1: color2,
             color2: color1,
             region: regionalSettings.currentRegion,

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 // MARK: - RatingComplianceManager
 
@@ -181,7 +182,7 @@ class RatingComplianceManager {
 
     /// 年齢制限チェック
     func checkAgeCompliance(userAge: Int) -> ComplianceResult {
-        guard let rating = getCurrentRating() else {
+        guard getCurrentRating() != nil else {
             return ComplianceResult(isCompliant: false, issues: ["レーティング情報が見つかりません"])
         }
 

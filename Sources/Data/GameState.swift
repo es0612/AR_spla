@@ -41,7 +41,7 @@ public class GameState {
     // MARK: - Balance Settings
 
     /// ゲームバランス設定
-    public let balanceSettings = GameBalanceSettings()
+    public var balanceSettings = GameBalanceSettings()
 
     /// フィードバック管理
     public let feedbackManager = GameFeedbackManager()

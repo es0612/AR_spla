@@ -41,16 +41,16 @@ class AccessibilityManager {
     }
 
     /// Dynamic Typeの現在のサイズ
-    @State var preferredContentSizeCategory: ContentSizeCategory = .medium
+    var preferredContentSizeCategory: ContentSizeCategory = .medium
 
     /// 色覚異常対応の色設定
-    @State var colorBlindnessSupport: ColorBlindnessType = .none
+    var colorBlindnessSupport: ColorBlindnessType = .none
 
     /// 音声フィードバックの有効/無効
-    @State var audioFeedbackEnabled: Bool = true
+    var audioFeedbackEnabled: Bool = true
 
     /// 触覚フィードバックの有効/無効
-    @State var hapticFeedbackEnabled: Bool = true
+    var hapticFeedbackEnabled: Bool = true
 
     // MARK: - Initialization
 
@@ -84,12 +84,7 @@ class AccessibilityManager {
     private func loadAccessibilitySettings() {
         let defaults = UserDefaults.standard
 
-        if let categoryRawValue = defaults.object(forKey: "accessibility_content_size") as? String,
-           let category = ContentSizeCategory(rawValue: categoryRawValue) {
-            preferredContentSizeCategory = category
-        } else {
-            updateContentSizeCategory()
-        }
+        updateContentSizeCategory()
 
         colorBlindnessSupport = ColorBlindnessType(rawValue: defaults.string(forKey: "accessibility_color_blindness") ?? "none") ?? .none
         audioFeedbackEnabled = defaults.object(forKey: "accessibility_audio_feedback") as? Bool ?? true
@@ -98,7 +93,6 @@ class AccessibilityManager {
 
     private func saveAccessibilitySettings() {
         let defaults = UserDefaults.standard
-        defaults.set(preferredContentSizeCategory.rawValue, forKey: "accessibility_content_size")
         defaults.set(colorBlindnessSupport.rawValue, forKey: "accessibility_color_blindness")
         defaults.set(audioFeedbackEnabled, forKey: "accessibility_audio_feedback")
         defaults.set(hapticFeedbackEnabled, forKey: "accessibility_haptic_feedback")

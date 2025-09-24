@@ -10,7 +10,7 @@ import SwiftUI
 // MARK: - RegionalSettingsView
 
 struct RegionalSettingsView: View {
-    @Environment(\.regionalSettings) private var regionalSettings
+    @State private var regionalSettings = RegionalSettingsManager.shared
     @Environment(\.dismiss) private var dismiss
     @State private var showingAgeVerification = false
     @State private var userAge: Int = 13
@@ -53,7 +53,7 @@ struct RegionalSettingsView: View {
     // MARK: - セクション
 
     private var regionSection: some View {
-        Section("地域設定") {
+        Section {
             Picker("地域", selection: $regionalSettings.currentRegion) {
                 ForEach(RegionalSettingsManager.Region.allCases, id: \.self) { region in
                     Text(region.displayName)
@@ -68,13 +68,15 @@ struct RegionalSettingsView: View {
                 Text(regionalSettings.currentRegion.languageCode.uppercased())
                     .foregroundColor(.secondary)
             }
+        } header: {
+            Text("地域設定")
         } footer: {
             Text("地域設定により、ゲームの内容や機能が調整されます。")
         }
     }
 
     private var culturalSection: some View {
-        Section("文化的配慮") {
+        Section {
             Picker("暴力表現レベル", selection: $regionalSettings.violenceLevel) {
                 ForEach(RegionalSettingsManager.ViolenceLevel.allCases, id: \.self) { level in
                     Text(level.displayName)
@@ -88,13 +90,15 @@ struct RegionalSettingsView: View {
             Toggle("文化的に適切な色の使用", isOn: $regionalSettings.culturallyAppropriateColors)
 
             Toggle("宗教的配慮", isOn: $regionalSettings.religiousConsiderations)
+        } header: {
+            Text("文化的配慮")
         } footer: {
             Text("地域の文化や宗教的背景に配慮した設定を行います。")
         }
     }
 
     private var ratingSection: some View {
-        Section("年齢レーティング") {
+        Section {
             Picker("対象年齢", selection: $regionalSettings.ageRating) {
                 ForEach(RegionalSettingsManager.AgeRating.allCases, id: \.self) { rating in
                     Text(rating.displayName)
@@ -113,13 +117,15 @@ struct RegionalSettingsView: View {
                     .foregroundColor(.orange)
                     .font(.caption)
             }
+        } header: {
+            Text("年齢レーティング")
         } footer: {
             Text("年齢レーティングに基づいて適切なコンテンツを提供します。")
         }
     }
 
     private var privacySection: some View {
-        Section("プライバシーとデータ") {
+        Section {
             Toggle("データ収集制限", isOn: $regionalSettings.dataCollectionRestricted)
 
             Toggle("広告表示制限", isOn: $regionalSettings.advertisingRestricted)
@@ -135,13 +141,15 @@ struct RegionalSettingsView: View {
                 Link("利用規約", destination: termsURL)
                     .foregroundColor(.blue)
             }
+        } header: {
+            Text("プライバシーとデータ")
         } footer: {
             Text("地域の法規制に準拠したプライバシー設定を行います。")
         }
     }
 
     private var playTimeSection: some View {
-        Section("プレイ時間管理") {
+        Section {
             VStack(alignment: .leading, spacing: 8) {
                 Text("推奨プレイ時間")
                     .font(.subheadline)
@@ -177,13 +185,15 @@ struct RegionalSettingsView: View {
                     )
                 }
             }
+        } header: {
+            Text("プレイ時間管理")
         } footer: {
             Text("健康的なゲームプレイのための時間管理設定です。")
         }
     }
 
     private var complianceSection: some View {
-        Section("コンプライアンス情報") {
+        Section {
             VStack(alignment: .leading, spacing: 12) {
                 complianceItem(
                     title: "COPPA準拠",
@@ -209,6 +219,8 @@ struct RegionalSettingsView: View {
                     description: "地域の文化的背景への配慮"
                 )
             }
+        } header: {
+            Text("コンプライアンス情報")
         }
     }
 
