@@ -15,19 +15,44 @@ class ARViewController: UIViewController {
     private weak var gameState: GameState?
     private weak var errorManager: ErrorManager?
 
+    // Device compatibility and AR capabilities
+    private let deviceCompatibility: DeviceCompatibilityManager
+    private let arCapabilityService: ARCapabilityService
+
     // Player shot tracking for cooldown
     private var playerLastShotTimes: [PlayerId: Date] = [:]
 
     // Delegates
     weak var delegate: ARViewControllerDelegate?
 
+    // MARK: - Initialization
+
+    init(deviceCompatibility: DeviceCompatibilityManager) {
+        self.deviceCompatibility = deviceCompatibility
+        arCapabilityService = ARCapabilityService(deviceCompatibility: deviceCompatibility)
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
     // MARK: - Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        // デバイス対応チェック
+        guard deviceCompatibility.isDeviceSupported() else {
+            errorManager?.handleError(.arUnsupportedDevice)
+            return
+        }
+
         setupARView()
         setupARGameCoordinator()
         setupGestures()
+        applyDeviceOptimizations()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -60,12 +85,26 @@ class ARViewController: UIViewController {
         checkCameraPermission { [weak self] granted in
             DispatchQueue.main.async {
                 if granted {
-                    self?.arGameCoordinator.startARSession()
+                    self?.startARSessionWithOptimalConfiguration()
                 } else {
                     self?.errorManager?.handleError(.arCameraAccessDenied)
                 }
             }
         }
+    }
+
+    /// デバイスに最適化されたAR設定でセッションを開始
+    private func startARSessionWithOptimalConfiguration() {
+        let configuration = arCapabilityService.getOptimalConfiguration()
+
+        // LiDARの有無に応じた設定調整
+        if arCapabilityService.capabilities.hasLiDAR {
+            print("LiDAR detected - enabling enhanced AR features")
+        } else {
+            print("No LiDAR - using traditional plane detection")
+        }
+
+        arGameCoordinator.startARSession(with: configuration)
     }
 
     /// カメラアクセス権限をチェックする
@@ -144,11 +183,42 @@ class ARViewController: UIViewController {
         arView = ARView(frame: view.bounds)
         arView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(arView)
+
+        // デバイスに応じたパフォーマンス最適化を適用
+        arCapabilityService.applyPerformanceOptimizations(to: arView)
     }
 
     private func setupARGameCoordinator() {
-        arGameCoordinator = ARGameCoordinator(arView: arView)
+        arGameCoordinator = ARGameCoordinator(
+            arView: arView,
+            deviceCompatibility: deviceCompatibility,
+            arCapabilityService: arCapabilityService
+        )
         arGameCoordinator.delegate = self
+    }
+
+    /// デバイス固有の最適化を適用
+    private func applyDeviceOptimizations() {
+        let performanceSettings = deviceCompatibility.getRecommendedSettings()
+
+        // パフォーマンス設定に応じた調整
+        switch performanceSettings.renderQuality {
+        case .high:
+            // 高品質設定
+            arView.environment.sceneUnderstanding.options = [.physics, .occlusion, .receivesLighting]
+        case .medium:
+            // 中品質設定
+            arView.environment.sceneUnderstanding.options = [.occlusion]
+        case .low:
+            // 低品質設定（最小限）
+            arView.environment.sceneUnderstanding.options = []
+        }
+
+        // オクルージョン設定
+        let occlusionSettings = arCapabilityService.getOcclusionSettings()
+        if occlusionSettings.enabled {
+            arView.environment.sceneUnderstanding.options.insert(.occlusion)
+        }
     }
 
     private func setupGestures() {

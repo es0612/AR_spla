@@ -6,6 +6,7 @@ struct MenuView: View {
     let gameState: GameState
     let errorManager: ErrorManager
     let tutorialManager: TutorialManager
+    let deviceCompatibility: DeviceCompatibilityManager
     @State private var isSearchingForPlayers = false
     @State private var accessibilityManager = AccessibilityManager()
     @Environment(\.localization) private var localization

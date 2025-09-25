@@ -6,14 +6,16 @@ import SwiftUI
 struct ARGameViewRepresentable: UIViewControllerRepresentable {
     let gameState: GameState?
     let errorManager: ErrorManager
+    let deviceCompatibility: DeviceCompatibilityManager
 
-    init(gameState: GameState? = nil, errorManager: ErrorManager) {
+    init(gameState: GameState? = nil, errorManager: ErrorManager, deviceCompatibility: DeviceCompatibilityManager) {
         self.gameState = gameState
         self.errorManager = errorManager
+        self.deviceCompatibility = deviceCompatibility
     }
 
     func makeUIViewController(context: Context) -> ARViewController {
-        let arViewController = ARViewController()
+        let arViewController = ARViewController(deviceCompatibility: deviceCompatibility)
         arViewController.delegate = context.coordinator
 
         if let gameState = gameState {
@@ -30,17 +32,19 @@ struct ARGameViewRepresentable: UIViewControllerRepresentable {
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(errorManager: errorManager)
+        Coordinator(errorManager: errorManager, deviceCompatibility: deviceCompatibility)
     }
 
     class Coordinator: NSObject, ARViewControllerDelegate {
         var gameState: GameState?
         private let errorManager: ErrorManager
+        private let deviceCompatibility: DeviceCompatibilityManager
         private var isGameFieldReady = false
         private var arGameCoordinator: ARGameCoordinator?
 
-        init(errorManager: ErrorManager) {
+        init(errorManager: ErrorManager, deviceCompatibility: DeviceCompatibilityManager) {
             self.errorManager = errorManager
+            self.deviceCompatibility = deviceCompatibility
         }
 
         // MARK: - ARViewControllerDelegate

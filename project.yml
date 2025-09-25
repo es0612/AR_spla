@@ -13,9 +13,12 @@ settings:
   base:
     SWIFT_VERSION: "5.9"
     IPHONEOS_DEPLOYMENT_TARGET: "17.0"
-    TARGETED_DEVICE_FAMILY: "1"
+    TARGETED_DEVICE_FAMILY: "1,2"  # iPhone and iPad support
     SUPPORTS_MACCATALYST: false
     SWIFT_EMIT_LOC_STRINGS: true
+    # Device compatibility settings
+    SUPPORTED_PLATFORMS: "iphoneos iphonesimulator"
+    VALID_ARCHS: "arm64"  # Modern devices only (iPhone 12+)
     
 targets:
   ARSplatoonGame:
@@ -47,8 +50,7 @@ targets:
         NSLocalNetworkUsageDescription: "このアプリは近くのプレイヤーとの対戦のためにローカルネットワークを使用します"
         # Code signing for development
         CODE_SIGN_STYLE: Automatic
-        DEVELOPMENT_TEAM: ""
-        CODE_SIGN_IDENTITY: "Apple Development"
+        CODE_SIGN_IDENTITY: ""
       configs:
         Debug:
           SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG

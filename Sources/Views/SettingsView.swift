@@ -3,6 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     @Bindable var gameState: GameState
     @Bindable var tutorialManager: TutorialManager
+    let deviceCompatibility: DeviceCompatibilityManager
 
     var body: some View {
         Form {
@@ -228,6 +229,49 @@ struct SettingsView: View {
                 }
             }
 
+            Section("デバイス互換性") {
+                HStack {
+                    Text("デバイス")
+                    Spacer()
+                    Text(deviceCompatibility.deviceInfo.modelName)
+                        .foregroundColor(.secondary)
+                }
+
+                HStack {
+                    Text("パフォーマンス")
+                    Spacer()
+                    Text(performanceTierDisplayName)
+                        .foregroundColor(performanceTierColor)
+                }
+
+                HStack {
+                    Text("LiDARセンサー")
+                    Spacer()
+                    HStack {
+                        Image(systemName: deviceCompatibility.isLiDARAvailable() ? "checkmark.circle.fill" : "xmark.circle.fill")
+                            .foregroundColor(deviceCompatibility.isLiDARAvailable() ? .green : .red)
+                        Text(deviceCompatibility.isLiDARAvailable() ? "利用可能" : "非対応")
+                            .foregroundColor(.secondary)
+                    }
+                }
+
+                HStack {
+                    Text("推奨設定")
+                    Spacer()
+                    Text(recommendedSettingsDisplayName)
+                        .foregroundColor(.secondary)
+                }
+
+                if deviceCompatibility.deviceInfo.isIPad {
+                    HStack {
+                        Text("iPad最適化")
+                        Spacer()
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.green)
+                    }
+                }
+            }
+
             Section("情報") {
                 HStack {
                     Text("バージョン")
@@ -274,10 +318,41 @@ struct SettingsView: View {
             return "終了"
         }
     }
+
+    private var performanceTierDisplayName: String {
+        switch deviceCompatibility.deviceInfo.performanceTier {
+        case .high:
+            return "高性能"
+        case .medium:
+            return "標準"
+        case .low:
+            return "低性能"
+        }
+    }
+
+    private var performanceTierColor: Color {
+        switch deviceCompatibility.deviceInfo.performanceTier {
+        case .high:
+            return .green
+        case .medium:
+            return .orange
+        case .low:
+            return .red
+        }
+    }
+
+    private var recommendedSettingsDisplayName: String {
+        let settings = deviceCompatibility.getRecommendedSettings()
+        return "\(settings.renderQuality)品質, \(settings.maxInkSpots)スポット"
+    }
 }
 
 #Preview {
     NavigationStack {
-        SettingsView(gameState: GameState(), tutorialManager: TutorialManager())
+        SettingsView(
+            gameState: GameState(),
+            tutorialManager: TutorialManager(),
+            deviceCompatibility: DeviceCompatibilityManager()
+        )
     }
 }

@@ -5,63 +5,73 @@ struct ContentView: View {
     @State private var errorManager = ErrorManager()
     @State private var tutorialManager = TutorialManager()
     @State private var localizationManager = LocalizationManager.shared
+    @State private var deviceCompatibility = DeviceCompatibilityManager()
 
     var body: some View {
         NavigationStack {
-            RTLVStack(spacing: 30) {
-                Text("app_name".localized)
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .rtlTextAlignment()
+            if !deviceCompatibility.isDeviceSupported() {
+                // デバイス非対応の場合の表示
+                DeviceUnsupportedView(deviceCompatibility: deviceCompatibility)
+            } else {
+                RTLVStack(spacing: 30) {
+                    Text("app_name".localized)
+                        .adaptiveFont(size: 34, deviceCompatibility: deviceCompatibility)
+                        .fontWeight(.bold)
+                        .rtlTextAlignment()
 
-                Text("app_description".localized)
-                    .font(.headline)
-                    .foregroundColor(.secondary)
-                    .rtlTextAlignment()
+                    Text("app_description".localized)
+                        .adaptiveFont(size: 17, deviceCompatibility: deviceCompatibility)
+                        .foregroundColor(.secondary)
+                        .rtlTextAlignment()
 
-                RTLVStack(spacing: 20) {
-                    NavigationLink(destination: MenuView(gameState: gameState, errorManager: errorManager, tutorialManager: tutorialManager)) {
-                        Text("start_game".localized)
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .cornerRadius(12)
-                            .rtlTextAlignment()
+                    RTLVStack(spacing: 20) {
+                        NavigationLink(destination: MenuView(gameState: gameState, errorManager: errorManager, tutorialManager: tutorialManager, deviceCompatibility: deviceCompatibility)) {
+                            Text("start_game".localized)
+                                .adaptiveFont(size: 22, deviceCompatibility: deviceCompatibility)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.blue)
+                                .cornerRadius(12)
+                                .rtlTextAlignment()
+                        }
+                        .adaptiveButton(deviceCompatibility)
+
+                        NavigationLink(destination: SettingsView(gameState: gameState, tutorialManager: tutorialManager, deviceCompatibility: deviceCompatibility)) {
+                            Text("settings".localized)
+                                .adaptiveFont(size: 22, deviceCompatibility: deviceCompatibility)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.blue)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.blue.opacity(0.1))
+                                .cornerRadius(12)
+                                .rtlTextAlignment()
+                        }
+                        .adaptiveButton(deviceCompatibility)
+
+                        Button("tutorial".localized) {
+                            tutorialManager.startTutorial(.firstLaunch)
+                        }
+                        .adaptiveFont(size: 22, deviceCompatibility: deviceCompatibility)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.green)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.green.opacity(0.1))
+                        .cornerRadius(12)
+                        .adaptiveButton(deviceCompatibility)
                     }
+                    .rtlPadding(leading: 16, trailing: 16)
 
-                    NavigationLink(destination: SettingsView(gameState: gameState, tutorialManager: tutorialManager)) {
-                        Text("settings".localized)
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.blue)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue.opacity(0.1))
-                            .cornerRadius(12)
-                            .rtlTextAlignment()
-                    }
-
-                    Button("tutorial".localized) {
-                        tutorialManager.startTutorial(.firstLaunch)
-                    }
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.green)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.green.opacity(0.1))
-                    .cornerRadius(12)
+                    Spacer()
                 }
-                .rtlPadding(leading: 16, trailing: 16)
-
-                Spacer()
+                .deviceAdaptive(deviceCompatibility)
+                .rtlPadding(leading: 16, trailing: 16, top: 16, bottom: 16)
+                .navigationBarHidden(true)
+                .rtlEnvironment()
             }
-            .rtlPadding(leading: 16, trailing: 16, top: 16, bottom: 16)
-            .navigationBarHidden(true)
-            .rtlEnvironment()
         }
         .environment(\.localization, localizationManager)
         .overlay(alignment: .center) {

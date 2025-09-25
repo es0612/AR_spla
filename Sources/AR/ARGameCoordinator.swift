@@ -127,6 +127,10 @@ public class ARGameCoordinator: NSObject, ObservableObject {
     private let inkRenderer: ARInkRenderer
     private let collisionDetector: CollisionDetector
 
+    // Device compatibility and AR capabilities
+    private let deviceCompatibility: DeviceCompatibilityManager
+    private let arCapabilityService: ARCapabilityService
+
     @Published public var gameFieldState: GameFieldState = .notDetected
     @Published public var arSessionState: ARSessionState = .notStarted
     @Published public var trackingQuality: ARTrackingQuality.TrackingQuality = .poor
@@ -137,20 +141,51 @@ public class ARGameCoordinator: NSObject, ObservableObject {
 
     // MARK: - Initialization
 
-    public init(arView: ARView, fieldSize: CGSize = CGSize(width: 4.0, height: 4.0), gameRules: GameRules = .default) {
+    public init(
+        arView: ARView,
+        deviceCompatibility: DeviceCompatibilityManager,
+        arCapabilityService: ARCapabilityService,
+        fieldSize: CGSize = CGSize(width: 4.0, height: 4.0),
+        gameRules: GameRules = .default
+    ) {
         self.arView = arView
-        gameFieldRepository = ARGameFieldRepository(arView: arView, fieldSize: fieldSize)
-        inkRenderer = ARInkRenderer(arView: arView)
-        collisionDetector = CollisionDetector(fieldSize: fieldSize, gameRules: gameRules)
+        self.deviceCompatibility = deviceCompatibility
+        self.arCapabilityService = arCapabilityService
+
+        // デバイス性能に応じたフィールドサイズ調整
+        let adjustedFieldSize = Self.adjustFieldSizeForDevice(fieldSize, deviceCompatibility: deviceCompatibility)
+
+        gameFieldRepository = ARGameFieldRepository(arView: arView, fieldSize: adjustedFieldSize)
+        inkRenderer = ARInkRenderer(arView: arView, deviceCompatibility: deviceCompatibility)
+        collisionDetector = CollisionDetector(fieldSize: adjustedFieldSize, gameRules: gameRules)
 
         super.init()
         setupDelegates()
+    }
+
+    /// デバイス性能に応じてフィールドサイズを調整
+    private static func adjustFieldSizeForDevice(_ baseSize: CGSize, deviceCompatibility: DeviceCompatibilityManager) -> CGSize {
+        let performanceSettings = deviceCompatibility.getRecommendedSettings()
+
+        switch performanceSettings.renderQuality {
+        case .high:
+            return baseSize // フルサイズ
+        case .medium:
+            return CGSize(width: baseSize.width * 0.8, height: baseSize.height * 0.8)
+        case .low:
+            return CGSize(width: baseSize.width * 0.6, height: baseSize.height * 0.6)
+        }
     }
 
     // MARK: - Public Methods
 
     /// Start AR session and begin plane detection
     public func startARSession() {
+        startARSession(with: nil)
+    }
+
+    /// Start AR session with custom configuration
+    public func startARSession(with customConfiguration: ARWorldTrackingConfiguration?) {
         guard ARWorldTrackingConfiguration.isSupported else {
             arSessionState = .failed(ARError.unsupportedDevice)
             delegate?.arGameCoordinator(self, didFailWithError: ARError.unsupportedDevice)
@@ -159,14 +194,40 @@ public class ARGameCoordinator: NSObject, ObservableObject {
 
         arSessionState = .starting
 
-        let configuration = ARWorldTrackingConfiguration()
-        configuration.planeDetection = [.horizontal]
-        configuration.environmentTexturing = .automatic
+        // 最適化された設定を使用、またはカスタム設定
+        let configuration = customConfiguration ?? arCapabilityService.getOptimalConfiguration()
+
+        // デバイス性能に応じた追加設定
+        applyDeviceSpecificConfiguration(to: configuration)
 
         arView.session.run(configuration, options: [.resetTracking, .removeExistingAnchors])
         arSessionState = .running
 
         delegate?.arGameCoordinatorDidStartSession(self)
+    }
+
+    /// デバイス固有の設定を適用
+    private func applyDeviceSpecificConfiguration(to configuration: ARWorldTrackingConfiguration) {
+        let performanceSettings = deviceCompatibility.getRecommendedSettings()
+
+        // パフォーマンス設定に応じた調整
+        switch performanceSettings.renderQuality {
+        case .high:
+            // 高品質設定 - すべての機能を有効化
+            if arCapabilityService.capabilities.hasLiDAR {
+                configuration.sceneReconstruction = .mesh
+            }
+            configuration.planeDetection = [.horizontal, .vertical]
+        case .medium:
+            // 中品質設定 - 基本機能のみ
+            configuration.planeDetection = [.horizontal]
+            configuration.sceneReconstruction = .none
+        case .low:
+            // 低品質設定 - 最小限の機能
+            configuration.planeDetection = [.horizontal]
+            configuration.sceneReconstruction = .none
+            configuration.environmentTexturing = .none
+        }
     }
 
     /// Stop AR session

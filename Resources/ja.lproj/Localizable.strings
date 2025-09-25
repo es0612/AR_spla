@@ -238,3 +238,16 @@
 "cultural_message_europe" = "ヨーロッパのアクセシビリティ基準に準拠した色選択を行っています。";
 "cultural_message_us" = "多様性への配慮を考慮した色選択を行っています。";
 "cultural_message_global" = "グローバルな文化的配慮を考慮した色選択を行っています。";
+//
+ MARK: - デバイス互換性
+"device_unsupported_title" = "デバイス非対応";
+"device_unsupported_description" = "申し訳ございませんが、お使いのデバイスはこのゲームをサポートしていません。";
+"device_too_old" = "このデバイスは古すぎるため、ゲームを実行できません。";
+"recommended_devices" = "推奨デバイス";
+"show_device_info" = "デバイス情報を表示";
+"lidar_available" = "LiDARセンサー利用可能";
+"lidar_not_available" = "LiDARセンサー非対応";
+"enhanced_ar_features" = "拡張AR機能";
+"standard_ar_features" = "標準AR機能";
+"performance_optimized" = "パフォーマンス最適化済み";
+"device_compatibility_check" = "デバイス互換性チェック";

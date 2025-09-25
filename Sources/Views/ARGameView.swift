@@ -8,15 +8,20 @@ struct ARGameView: View {
     @Bindable var gameState: GameState
     let errorManager: ErrorManager
     let tutorialManager: TutorialManager
+    let deviceCompatibility: DeviceCompatibilityManager
     @Environment(\.dismiss) private var dismiss
     @State private var isARSupported = ARWorldTrackingConfiguration.isSupported
     @State private var showingGameResult = false
 
     var body: some View {
         ZStack {
-            if isARSupported {
-                ARGameViewRepresentable(gameState: gameState, errorManager: errorManager)
-                    .ignoresSafeArea()
+            if isARSupported, deviceCompatibility.isDeviceSupported() {
+                ARGameViewRepresentable(
+                    gameState: gameState,
+                    errorManager: errorManager,
+                    deviceCompatibility: deviceCompatibility
+                )
+                .ignoresSafeArea()
 
                 // Game UI Overlay
                 GameUIOverlay(gameState: gameState, tutorialManager: tutorialManager, onEndGame: {
@@ -59,7 +64,11 @@ struct ARGameView: View {
                     }
                 }
             } else {
-                ARNotSupportedView()
+                if !isARSupported {
+                    ARNotSupportedView()
+                } else {
+                    DeviceUnsupportedView(deviceCompatibility: deviceCompatibility)
+                }
             }
         }
         .navigationBarHidden(true)
@@ -375,5 +384,10 @@ struct ARNotSupportedView: View {
 }
 
 #Preview {
-    ARGameView(gameState: GameState(), errorManager: ErrorManager(), tutorialManager: TutorialManager())
+    ARGameView(
+        gameState: GameState(),
+        errorManager: ErrorManager(),
+        tutorialManager: TutorialManager(),
+        deviceCompatibility: DeviceCompatibilityManager()
+    )
 }

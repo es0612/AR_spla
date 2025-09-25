@@ -13,16 +13,34 @@ public class ARInkRenderer {
     private var inkSpotEntities: [InkSpotId: ModelEntity] = [:]
     private var inkSpotAnchors: [InkSpotId: AnchorEntity] = [:]
 
-    // Rendering settings
+    // Device compatibility
+    private let deviceCompatibility: DeviceCompatibilityManager
+    private let performanceSettings: GamePerformanceSettings
+
+    // Rendering settings (adjusted based on device performance)
     private let inkSpotRadius: Float = 0.05
-    private let maxInkSpots: Int = 1_000
+    private let maxInkSpots: Int
+    private let enableAnimations: Bool
+    private let enableAdvancedMaterials: Bool
 
     weak var delegate: ARInkRendererDelegate?
 
     // MARK: - Initialization
 
-    public init(arView: ARView) {
+    public init(arView: ARView, deviceCompatibility: DeviceCompatibilityManager) {
         self.arView = arView
+        self.deviceCompatibility = deviceCompatibility
+        performanceSettings = deviceCompatibility.getRecommendedSettings()
+
+        // デバイス性能に応じた設定調整
+        maxInkSpots = performanceSettings.maxInkSpots
+        enableAnimations = performanceSettings.renderQuality != .low
+        enableAdvancedMaterials = performanceSettings.renderQuality == .high
+    }
+
+    /// 従来のイニシャライザ（後方互換性のため）
+    public convenience init(arView: ARView) {
+        self.init(arView: arView, deviceCompatibility: DeviceCompatibilityManager())
     }
 
     // MARK: - Public Methods
@@ -48,8 +66,10 @@ public class ARInkRenderer {
         inkSpotEntities[inkSpot.id] = entity
         inkSpotAnchors[inkSpot.id] = anchorEntity
 
-        // Add animation
-        animateInkSpotAppearance(entity)
+        // Add animation (if enabled for performance)
+        if enableAnimations {
+            animateInkSpotAppearance(entity)
+        }
 
         delegate?.inkRenderer(self, didAddInkSpot: inkSpot)
     }
@@ -59,16 +79,14 @@ public class ARInkRenderer {
         guard let entity = inkSpotEntities[id],
               let anchor = inkSpotAnchors[id] else { return }
 
-        // Animate removal
-        animateInkSpotDisappearance(entity) { [weak self] in
-            // Remove from scene
-            self?.arView.scene.removeAnchor(anchor)
-
-            // Clean up references
-            self?.inkSpotEntities.removeValue(forKey: id)
-            self?.inkSpotAnchors.removeValue(forKey: id)
-
-            self?.delegate?.inkRenderer(self!, didRemoveInkSpot: id)
+        if enableAnimations {
+            // Animate removal
+            animateInkSpotDisappearance(entity) { [weak self] in
+                self?.removeInkSpotFromScene(id: id, anchor: anchor)
+            }
+        } else {
+            // Remove immediately for better performance
+            removeInkSpotFromScene(id: id, anchor: anchor)
         }
     }
 
@@ -133,11 +151,30 @@ public class ARInkRenderer {
         let uiColor = playerColor.toUIColor()
         material.color = .init(tint: uiColor)
 
-        // Set material properties for ink-like appearance
-        material.roughness = .init(floatLiteral: 0.6) // Slightly more reflective
-        material.metallic = .init(floatLiteral: 0.2) // Slight metallic look
+        // デバイス性能に応じたマテリアル設定
+        if enableAdvancedMaterials {
+            // 高品質マテリアル設定
+            material.roughness = .init(floatLiteral: 0.6)
+            material.metallic = .init(floatLiteral: 0.2)
+        } else {
+            // 基本マテリアル設定（パフォーマンス重視）
+            material.roughness = .init(floatLiteral: 0.8)
+            material.metallic = .init(floatLiteral: 0.0)
+        }
 
         return material
+    }
+
+    /// インクスポットをシーンから削除する共通処理
+    private func removeInkSpotFromScene(id: InkSpotId, anchor: AnchorEntity) {
+        // Remove from scene
+        arView.scene.removeAnchor(anchor)
+
+        // Clean up references
+        inkSpotEntities.removeValue(forKey: id)
+        inkSpotAnchors.removeValue(forKey: id)
+
+        delegate?.inkRenderer(self, didRemoveInkSpot: id)
     }
 
     private func updateInkSpotMaterial(_ entity: ModelEntity, for inkSpot: InkSpot) {
