@@ -46,6 +46,9 @@ public class GameState {
     /// フィードバック管理
     public let feedbackManager = GameFeedbackManager()
 
+    /// パフォーマンス管理
+    @ObservationIgnored public lazy var performanceManager = PerformanceManager()
+
     // MARK: - Initialization
 
     public init() {
@@ -61,6 +64,9 @@ public class GameState {
 
         // Load settings
         loadSettings()
+
+        // Start performance optimization
+        performanceManager.startOptimization()
     }
 
     // MARK: - Game Actions
@@ -79,6 +85,9 @@ public class GameState {
 
             isConnecting = false
             isGameActive = true
+
+            // Optimize for playing phase
+            performanceManager.optimizeForGamePhase(.playing)
         } catch {
             handleError(error)
             isConnecting = false
@@ -161,6 +170,9 @@ public class GameState {
             updateStateFromCoordinator()
             isGameActive = false
 
+            // Optimize for finished phase
+            performanceManager.optimizeForGamePhase(.finished)
+
             // ゲーム終了時にフィードバック収集を促す
             if feedbackManager.isCollectionEnabled {
                 requestFeedback()
@@ -185,6 +197,9 @@ public class GameState {
         isGameActive = false
         isConnecting = false
         clearError()
+
+        // Optimize for waiting phase
+        performanceManager.optimizeForGamePhase(.waiting)
     }
 
     // MARK: - Player Management
@@ -314,7 +329,18 @@ public class GameState {
     // MARK: - Private Methods
 
     private func updateStateFromCoordinator() {
-        currentPhase = gameCoordinator.gamePhase
+        // GamePhaseの型変換
+        switch gameCoordinator.gamePhase {
+        case .waiting:
+            currentPhase = .waiting
+        case .connecting:
+            currentPhase = .connecting
+        case .playing:
+            currentPhase = .playing
+        case .finished:
+            currentPhase = .finished
+        }
+        
         players = gameCoordinator.players
         currentGameSession = gameCoordinator.currentGameSession
         winner = gameCoordinator.winner

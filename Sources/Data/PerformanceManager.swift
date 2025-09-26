@@ -14,13 +14,13 @@ import RealityKit
 // MARK: - PerformanceManager
 
 /// アプリ全体のパフォーマンス最適化を統合管理するクラス
-@MainActor
-class PerformanceManager: ObservableObject {
+public class PerformanceManager: ObservableObject {
     // MARK: - Properties
 
     private var arOptimizer: ARPerformanceOptimizer?
     private var networkOptimizer: NetworkPerformanceOptimizer?
     private var memoryOptimizer: MemoryOptimizer
+    private var batteryOptimizer: BatteryOptimizer
 
     // パフォーマンス統計
     @Published var overallPerformance = OverallPerformanceStats()
@@ -37,6 +37,7 @@ class PerformanceManager: ObservableObject {
 
     init() {
         memoryOptimizer = MemoryOptimizer()
+        batteryOptimizer = BatteryOptimizer()
         setupPerformanceManagement()
     }
 
@@ -77,8 +78,13 @@ class PerformanceManager: ObservableObject {
         isOptimizationActive = true
 
         // 各最適化コンポーネントを開始
-        arOptimizer?.startMonitoring()
+        Task { @MainActor in
+            arOptimizer?.startMonitoring()
+        }
         memoryOptimizer.startOptimization()
+        Task { @MainActor in
+            batteryOptimizer.startOptimization()
+        }
 
         // 定期監視を開始
         startPerformanceMonitoring()
@@ -92,8 +98,13 @@ class PerformanceManager: ObservableObject {
         isOptimizationActive = false
 
         // 各最適化コンポーネントを停止
-        arOptimizer?.stopMonitoring()
+        Task { @MainActor in
+            arOptimizer?.stopMonitoring()
+        }
         memoryOptimizer.stopOptimization()
+        Task { @MainActor in
+            batteryOptimizer.stopOptimization()
+        }
 
         // 定期監視を停止
         stopPerformanceMonitoring()
@@ -103,9 +114,7 @@ class PerformanceManager: ObservableObject {
 
     private func startPerformanceMonitoring() {
         monitoringTimer = Timer.scheduledTimer(withTimeInterval: monitoringInterval, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                self?.performPerformanceCheck()
-            }
+            self?.performPerformanceCheck()
         }
     }
 
@@ -215,11 +224,16 @@ class PerformanceManager: ObservableObject {
         switch phase {
         case .waiting:
             optimizeForWaitingPhase()
+        case .connecting:
+            optimizeForConnectingPhase()
         case .playing:
             optimizeForPlayingPhase()
         case .finished:
             optimizeForFinishedPhase()
         }
+
+        // バッテリー最適化も同期
+        batteryOptimizer.optimizeForGamePhase(phase)
     }
 
     private func optimizeForWaitingPhase() {
@@ -228,6 +242,12 @@ class PerformanceManager: ObservableObject {
         arOptimizer?.targetFrameRate = 30 // フレームレートを下げる
     }
 
+    private func optimizeForConnectingPhase() {
+        // 接続中の最適化
+        performanceTarget = .balanced
+        arOptimizer?.targetFrameRate = 45 // 中程度のフレームレート
+    }
+    
     private func optimizeForPlayingPhase() {
         // ゲーム中の最適化
         performanceTarget = .performance
@@ -269,6 +289,9 @@ class PerformanceManager: ObservableObject {
 
         // メモリ レポート
         report.memoryReport = memoryOptimizer.getMemoryReport()
+
+        // バッテリー レポート
+        report.batteryReport = batteryOptimizer.getBatteryOptimizationReport()
 
         return report
     }
@@ -327,6 +350,7 @@ class PerformanceManager: ObservableObject {
         arOptimizer?.resetStatistics()
         networkOptimizer?.resetStatistics()
         memoryOptimizer.resetStatistics()
+        batteryOptimizer.resetStatistics()
     }
 
     deinit {
@@ -372,11 +396,12 @@ struct ComprehensivePerformanceReport {
     var arReport: PerformanceReport?
     var networkReport: NetworkPerformanceReport?
     var memoryReport: MemoryReport?
+    var batteryReport: BatteryOptimizationReport?
 }
 
 // MARK: - PerformanceTarget
 
-enum PerformanceTarget {
+public enum PerformanceTarget {
     case powerSaving // 省電力重視
     case balanced // バランス重視
     case performance // パフォーマンス重視
@@ -384,16 +409,3 @@ enum PerformanceTarget {
 }
 
 // MARK: - Extensions
-
-extension GamePhase {
-    var performanceProfile: PerformanceTarget {
-        switch self {
-        case .waiting:
-            return .powerSaving
-        case .playing:
-            return .performance
-        case .finished:
-            return .balanced
-        }
-    }
-}

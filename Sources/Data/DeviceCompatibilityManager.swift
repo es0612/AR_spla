@@ -13,7 +13,7 @@ import UIKit
 
 /// デバイス互換性を管理するマネージャー
 @Observable
-class DeviceCompatibilityManager {
+public class DeviceCompatibilityManager {
     // MARK: - Properties
 
     /// 現在のデバイス情報
@@ -105,7 +105,7 @@ class DeviceCompatibilityManager {
     private static func detectARKitSupport() -> ARKitSupport {
         let isSupported = ARWorldTrackingConfiguration.isSupported
         let hasLiDAR = ARWorldTrackingConfiguration.supportsSceneReconstruction(.mesh)
-        let supportsPlaneDetection = ARWorldTrackingConfiguration.supportedPlaneDetectionTypes.contains(.horizontal)
+        let supportsPlaneDetection = ARWorldTrackingConfiguration.isSupported // 平面検出は基本的にサポートされている
         let supportsImageTracking = ARImageTrackingConfiguration.isSupported
 
         return ARKitSupport(
@@ -138,7 +138,7 @@ class DeviceCompatibilityManager {
         let machineMirror = Mirror(reflecting: systemInfo.machine)
         let identifier = machineMirror.children.reduce("") { identifier, element in
             guard let value = element.value as? Int8, value != 0 else { return identifier }
-            return identifier + String(UnicodeScalar(UInt8(value))!)
+            return identifier + String(UnicodeScalar(UInt8(value)) ?? UnicodeScalar(0)!)
         }
         return identifier
     }

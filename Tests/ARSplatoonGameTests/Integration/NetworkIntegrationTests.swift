@@ -10,6 +10,7 @@ import MultipeerConnectivity
 @testable import ARSplatoonGame
 @testable import Domain
 @testable import Infrastructure
+@testable import TestSupport
 
 /// Integration tests for network functionality
 struct NetworkIntegrationTests {

@@ -16,6 +16,168 @@ import RealityKit
 /// Performance tests for critical game components
 struct PerformanceTests {
     
+    // MARK: - Battery Optimization Performance Tests
+    
+    @Test("バッテリー最適化パフォーマンステスト")
+    func testBatteryOptimizationPerformance() async throws {
+        let batteryOptimizer = BatteryOptimizer()
+        
+        let startTime = Date()
+        
+        // 最適化開始
+        batteryOptimizer.startOptimization()
+        
+        // 様々な最適化レベルでのパフォーマンステスト
+        for level in BatteryOptimizationLevel.allCases {
+            batteryOptimizer.batteryOptimizationLevel = level
+            
+            // 各レベルでの最適化処理をシミュレート
+            for _ in 0..<100 {
+                // ダミーのゲームフェーズ変更
+                batteryOptimizer.optimizeForGamePhase(.playing)
+                batteryOptimizer.optimizeForGamePhase(.waiting)
+            }
+        }
+        
+        // 最適化停止
+        batteryOptimizer.stopOptimization()
+        
+        let endTime = Date()
+        let duration = endTime.timeIntervalSince(startTime)
+        
+        // パフォーマンス要件: バッテリー最適化処理が1秒以内
+        #expect(duration < 1.0)
+        
+        print("バッテリー最適化パフォーマンス: 全レベルでの最適化処理を\(String(format: "%.3f", duration))秒で完了")
+    }
+    
+    @Test("熱管理パフォーマンステスト")
+    func testThermalManagementPerformance() async throws {
+        let batteryOptimizer = BatteryOptimizer()
+        batteryOptimizer.startOptimization()
+        
+        let startTime = Date()
+        
+        // 様々な熱状態での最適化処理をシミュレート
+        let thermalStates: [ProcessInfo.ThermalState] = [.nominal, .fair, .serious, .critical]
+        
+        for _ in 0..<1000 {
+            for thermalState in thermalStates {
+                // 熱状態変更をシミュレート
+                batteryOptimizer.thermalState = thermalState
+                
+                // 最適化処理の実行
+                switch thermalState {
+                case .nominal:
+                    batteryOptimizer.batteryOptimizationLevel = .balanced
+                case .fair:
+                    batteryOptimizer.batteryOptimizationLevel = .powerSaving
+                case .serious:
+                    batteryOptimizer.batteryOptimizationLevel = .aggressive
+                case .critical:
+                    batteryOptimizer.batteryOptimizationLevel = .maximum
+                @unknown default:
+                    batteryOptimizer.batteryOptimizationLevel = .balanced
+                }
+            }
+        }
+        
+        batteryOptimizer.stopOptimization()
+        
+        let endTime = Date()
+        let duration = endTime.timeIntervalSince(startTime)
+        
+        // パフォーマンス要件: 4000回の熱管理処理が2秒以内
+        #expect(duration < 2.0)
+        
+        print("熱管理パフォーマンス: 4000回の熱状態変更処理を\(String(format: "%.3f", duration))秒で完了")
+    }
+    
+    @Test("統合パフォーマンス最適化テスト")
+    func testIntegratedPerformanceOptimization() async throws {
+        let performanceManager = PerformanceManager()
+        let gameState = GameState()
+        
+        let startTime = Date()
+        
+        // パフォーマンス最適化開始
+        performanceManager.startOptimization()
+        
+        // ゲーム状態の変更をシミュレート
+        for phase in [GamePhase.waiting, .playing, .finished] {
+            performanceManager.optimizeForGamePhase(phase)
+            
+            // 各フェーズで100回の最適化処理
+            for _ in 0..<100 {
+                // ダミーの最適化処理
+                _ = performanceManager.overallPerformance
+            }
+        }
+        
+        // 統合レポートの生成
+        let report = performanceManager.getComprehensivePerformanceReport()
+        
+        performanceManager.stopOptimization()
+        
+        let endTime = Date()
+        let duration = endTime.timeIntervalSince(startTime)
+        
+        // パフォーマンス要件: 統合最適化処理が1.5秒以内
+        #expect(duration < 1.5)
+        #expect(report.overallStats.performanceScore >= 0)
+        #expect(report.batteryReport != nil)
+        
+        print("統合パフォーマンス最適化: 全フェーズでの最適化処理を\(String(format: "%.3f", duration))秒で完了")
+    }
+    
+    @Test("メモリ最適化パフォーマンステスト")
+    func testMemoryOptimizationPerformance() async throws {
+        let memoryOptimizer = MemoryOptimizer()
+        
+        let initialMemory = getMemoryUsage()
+        let startTime = Date()
+        
+        // メモリ最適化開始
+        memoryOptimizer.startOptimization()
+        
+        // 大量のメモリ使用をシミュレート
+        var largeDataArray: [[UInt8]] = []
+        
+        for i in 0..<100 {
+            // 1MBのデータを作成
+            let data = Array(repeating: UInt8(i % 256), count: 1024 * 1024)
+            largeDataArray.append(data)
+            
+            // 10個ごとにメモリ最適化を実行
+            if i % 10 == 0 {
+                let currentMemory = getMemoryUsage()
+                if currentMemory > initialMemory + 50 * 1024 * 1024 { // 50MB増加
+                    // メモリ最適化の実行
+                    memoryOptimizer.performMemoryOptimization()
+                }
+            }
+        }
+        
+        // 最終的なメモリクリーンアップ
+        largeDataArray.removeAll()
+        memoryOptimizer.performEmergencyCleanup()
+        
+        memoryOptimizer.stopOptimization()
+        
+        let endTime = Date()
+        let finalMemory = getMemoryUsage()
+        let duration = endTime.timeIntervalSince(startTime)
+        
+        // パフォーマンス要件: メモリ最適化処理が3秒以内
+        #expect(duration < 3.0)
+        
+        // メモリリーク要件: 最終メモリ使用量が初期値+20MB以下
+        #expect(finalMemory < initialMemory + 20 * 1024 * 1024)
+        
+        print("メモリ最適化パフォーマンス: 100MBのメモリ処理を\(String(format: "%.3f", duration))秒で完了")
+        print("メモリ使用量: 初期=\(formatBytes(initialMemory)), 最終=\(formatBytes(finalMemory))")
+    }
+    
     // MARK: - AR Performance Tests
     
     @Test("AR描画パフォーマンステスト")

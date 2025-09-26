@@ -193,4 +193,8 @@ class MockARGameCoordinatorDelegate: ARGameCoordinatorDelegate {
         didCreateInkConflictCalled = true
         lastConflictOverlapArea = overlapArea
     }
+    
+    func arGameCoordinator(_ coordinator: ARGameCoordinator, didUpdatePlayerPosition position: Position3D) {}
+    
+    func arGameCoordinatorDidCompleteePlaneDetection(_ coordinator: ARGameCoordinator) {}
 }

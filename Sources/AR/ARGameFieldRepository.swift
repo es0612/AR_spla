@@ -139,8 +139,8 @@ public class ARGameFieldRepository {
     // MARK: - Private Methods
 
     private func isPlaneSupitable(_ planeAnchor: ARPlaneAnchor) -> Bool {
-        let extent = planeAnchor.extent
-        return extent.x >= Float(fieldSize.width) && extent.z >= Float(fieldSize.height)
+        let extent = planeAnchor.planeExtent
+        return extent.width >= Float(fieldSize.width) && extent.height >= Float(fieldSize.height)
     }
 
     private func createFieldVisualization(for planeAnchor: ARPlaneAnchor) {

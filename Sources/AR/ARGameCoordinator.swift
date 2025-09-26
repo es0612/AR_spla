@@ -221,11 +221,11 @@ public class ARGameCoordinator: NSObject, ObservableObject {
         case .medium:
             // 中品質設定 - 基本機能のみ
             configuration.planeDetection = [.horizontal]
-            configuration.sceneReconstruction = .none
+            configuration.sceneReconstruction = []
         case .low:
             // 低品質設定 - 最小限の機能
             configuration.planeDetection = [.horizontal]
-            configuration.sceneReconstruction = .none
+            configuration.sceneReconstruction = []
             configuration.environmentTexturing = .none
         }
     }

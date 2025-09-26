@@ -210,4 +210,6 @@ private class MockARGameCoordinatorDelegate: ARGameCoordinatorDelegate {
     func arGameCoordinator(_ coordinator: ARGameCoordinator, didUpdatePlayerPosition position: Position3D) {
         playerPositionUpdates.append(position)
     }
+    
+    func arGameCoordinatorDidCompleteePlaneDetection(_ coordinator: ARGameCoordinator) {}
 }

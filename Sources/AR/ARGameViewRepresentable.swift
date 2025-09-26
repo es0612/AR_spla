@@ -1,5 +1,5 @@
 import ARKit
-import Domain
+@preconcurrency import Domain
 import RealityKit
 import SwiftUI
 
@@ -130,12 +130,11 @@ struct ARGameViewRepresentable: UIViewControllerRepresentable {
                 gameState.players[playerIndex] = deactivatedPlayer
 
                 // Reactivate player after delay
-                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-                    Task { @MainActor in
-                        if let currentIndex = gameState.players.firstIndex(where: { $0.id == playerId }) {
-                            let reactivatedPlayer = gameState.players[currentIndex].activate()
-                            gameState.players[currentIndex] = reactivatedPlayer
-                        }
+                Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: 3_000_000_000) // 3 seconds
+                    if let currentIndex = gameState.players.firstIndex(where: { $0.id == playerId }) {
+                        let reactivatedPlayer = gameState.players[currentIndex].activate()
+                        gameState.players[currentIndex] = reactivatedPlayer
                     }
                 }
 

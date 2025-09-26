@@ -217,7 +217,7 @@ class PlayTimeManager {
             if userAge < 18 {
                 // 平日22時〜翌8時、休日21時〜翌8時は制限
                 let isWeekday = !isWeekend()
-                let restrictedHours = isWeekday ? (22 ... 23) + (0 ... 7) : (21 ... 23) + (0 ... 7)
+                let restrictedHours = isWeekday ? [22, 23, 0, 1, 2, 3, 4, 5, 6, 7] : [21, 22, 23, 0, 1, 2, 3, 4, 5, 6, 7]
 
                 if restrictedHours.contains(currentHour) {
                     hasReachedTimeLimit = true

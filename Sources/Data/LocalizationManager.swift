@@ -104,7 +104,11 @@ class LocalizationManager {
     /// 現在の言語がRTL（右から左）かどうかを判定
     var isRTL: Bool {
         let locale = Locale(identifier: currentLanguage)
-        return Locale.characterDirection(forLanguage: locale.language.languageCode?.identifier ?? "ja") == .rightToLeft
+        if #available(iOS 16.0, *) {
+            return Locale.Language(identifier: locale.language.languageCode?.identifier ?? "ja").characterDirection == .rightToLeft
+        } else {
+            return Locale.characterDirection(forLanguage: locale.language.languageCode?.identifier ?? "ja") == .rightToLeft
+        }
     }
 
     /// 現在の言語の表示名を取得

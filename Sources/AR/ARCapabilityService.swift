@@ -12,7 +12,7 @@ import RealityKit
 // MARK: - ARCapabilityService
 
 /// ARの機能差分を管理するサービス
-class ARCapabilityService: ObservableObject {
+public class ARCapabilityService: ObservableObject {
     // MARK: - Properties
 
     @Published private(set) var capabilities: ARCapabilities
@@ -121,7 +121,7 @@ class ARCapabilityService: ObservableObject {
 
     private static func detectCapabilities() -> ARCapabilities {
         let hasLiDAR = ARWorldTrackingConfiguration.supportsSceneReconstruction(.mesh)
-        let supportsPlaneDetection = !ARWorldTrackingConfiguration.supportedPlaneDetectionTypes.isEmpty
+        let supportsPlaneDetection = ARWorldTrackingConfiguration.isSupported
         let supportsImageTracking = ARImageTrackingConfiguration.isSupported
         let supportsObjectDetection = ARObjectScanningConfiguration.isSupported
         let supportsOcclusion = hasLiDAR // LiDARがあればオクルージョンも利用可能
@@ -132,7 +132,7 @@ class ARCapabilityService: ObservableObject {
             supportsImageTracking: supportsImageTracking,
             supportsObjectDetection: supportsObjectDetection,
             supportsOcclusion: supportsOcclusion,
-            maxTrackingImages: ARImageTrackingConfiguration.supportedNumberOfTrackedImages
+            maxTrackingImages: 4 // デフォルト値を使用
         )
     }
 

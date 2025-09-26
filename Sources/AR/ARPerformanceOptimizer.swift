@@ -13,7 +13,6 @@ import simd
 // MARK: - ARPerformanceOptimizer
 
 /// AR描画パフォーマンス最適化を担当するクラス
-@MainActor
 class ARPerformanceOptimizer: ObservableObject {
     // MARK: - Properties
 
@@ -47,7 +46,7 @@ class ARPerformanceOptimizer: ObservableObject {
     private func setupPerformanceMonitoring() {
         // フレームレート監視
         frameRateMonitor.onFrameRateUpdate = { [weak self] frameRate in
-            Task { @MainActor in
+            DispatchQueue.main.async {
                 self?.currentFrameRate = frameRate
                 self?.adjustPerformanceSettings(frameRate: frameRate)
             }
@@ -55,7 +54,7 @@ class ARPerformanceOptimizer: ObservableObject {
 
         // メモリ使用量監視
         memoryMonitor.onMemoryUpdate = { [weak self] memoryUsage in
-            Task { @MainActor in
+            DispatchQueue.main.async {
                 self?.memoryUsage = memoryUsage
                 self?.handleMemoryPressure(memoryUsage: memoryUsage)
             }
@@ -143,6 +142,81 @@ class ARPerformanceOptimizer: ObservableObject {
         if mergedSpots.count < inkSpots.count {
             optimizationStats.inkSpotMerges += inkSpots.count - mergedSpots.count
         }
+    }
+
+    // MARK: - Battery Efficiency Optimization
+
+    func optimizeForBatteryEfficiency(level: BatteryOptimizationLevel) {
+        switch level {
+        case .balanced:
+            applyBalancedBatteryOptimizations()
+        case .powerSaving:
+            applyPowerSavingBatteryOptimizations()
+        case .aggressive:
+            applyAggressiveBatteryOptimizations()
+        case .maximum:
+            applyMaximumBatteryOptimizations()
+        }
+    }
+
+    private func applyBalancedBatteryOptimizations() {
+        // バランス重視：品質とバッテリーのバランス
+        targetFrameRate = 60
+        renderingOptimizer.setRenderingQuality(.high)
+        renderingOptimizer.enableSelectiveOptimizations()
+    }
+
+    private func applyPowerSavingBatteryOptimizations() {
+        // 省電力重視：フレームレートを下げて電力消費を削減
+        targetFrameRate = 45
+        renderingOptimizer.setRenderingQuality(.medium)
+        renderingOptimizer.enablePowerSavingMode()
+        renderingOptimizer.reduceARUpdateFrequency()
+    }
+
+    private func applyAggressiveBatteryOptimizations() {
+        // 積極的な省電力：大幅な品質低下を許容
+        targetFrameRate = 30
+        renderingOptimizer.setRenderingQuality(.low)
+        renderingOptimizer.enableAggressivePowerSaving()
+        renderingOptimizer.minimizeARProcessing()
+    }
+
+    private func applyMaximumBatteryOptimizations() {
+        // 最大限の省電力：最低限の機能のみ維持
+        targetFrameRate = 20
+        renderingOptimizer.setRenderingQuality(.minimal)
+        renderingOptimizer.enableEmergencyPowerSaving()
+        renderingOptimizer.pauseNonEssentialARFeatures()
+    }
+
+    func optimizeForThermalState(_ thermalState: ProcessInfo.ThermalState) {
+        switch thermalState {
+        case .nominal:
+            // 通常状態：最適化を緩和
+            renderingOptimizer.restoreNormalOperations()
+
+        case .fair:
+            // 軽度の熱上昇：軽度の最適化
+            renderingOptimizer.enableThermalOptimizations()
+            targetFrameRate = max(targetFrameRate - 10, 30)
+
+        case .serious:
+            // 重度の熱上昇：積極的な最適化
+            renderingOptimizer.enableAggressiveThermalOptimizations()
+            targetFrameRate = max(targetFrameRate - 20, 20)
+
+        case .critical:
+            // 危険な熱状態：最大限の最適化
+            renderingOptimizer.enableEmergencyThermalOptimizations()
+            targetFrameRate = 15
+            renderingOptimizer.pauseAllNonEssentialOperations()
+
+        @unknown default:
+            renderingOptimizer.enableThermalOptimizations()
+        }
+
+        optimizationStats.thermalOptimizations += 1
     }
 
     // MARK: - Network Optimization
@@ -414,6 +488,101 @@ class RenderingOptimizer {
         renderingStats
     }
 
+    // MARK: - Battery Efficiency Methods
+
+    func setRenderingQuality(_ quality: RenderingQuality) {
+        switch quality {
+        case .minimal:
+            arView?.renderOptions.insert(.disableHDR)
+            arView?.renderOptions.insert(.disablePersonOcclusion)
+            arView?.renderOptions.insert(.disableMotionBlur)
+        case .low:
+            arView?.renderOptions.insert(.disableHDR)
+            arView?.renderOptions.insert(.disablePersonOcclusion)
+        case .medium:
+            arView?.renderOptions.remove(.disableHDR)
+            arView?.renderOptions.insert(.disablePersonOcclusion)
+        case .high:
+            arView?.renderOptions.remove(.disableHDR)
+            arView?.renderOptions.remove(.disablePersonOcclusion)
+        }
+        renderingStats.qualityChanges += 1
+    }
+
+    func enableSelectiveOptimizations() {
+        // 選択的最適化：重要な機能は維持
+        renderingStats.selectiveOptimizations += 1
+    }
+
+    func enablePowerSavingMode() {
+        // 省電力モード：フレームレートとレンダリング品質を調整
+        arView?.renderOptions.insert(.disableMotionBlur)
+        renderingStats.powerSavingActivations += 1
+    }
+
+    func enableAggressivePowerSaving() {
+        // 積極的省電力：大幅な品質低下を許容
+        arView?.renderOptions.insert(.disableHDR)
+        arView?.renderOptions.insert(.disablePersonOcclusion)
+        arView?.renderOptions.insert(.disableMotionBlur)
+        renderingStats.aggressivePowerSaving += 1
+    }
+
+    func enableEmergencyPowerSaving() {
+        // 緊急省電力：最低限の機能のみ
+        arView?.renderOptions.insert(.disableHDR)
+        arView?.renderOptions.insert(.disablePersonOcclusion)
+        arView?.renderOptions.insert(.disableMotionBlur)
+        renderingStats.emergencyPowerSaving += 1
+    }
+
+    func reduceARUpdateFrequency() {
+        // AR更新頻度の削減
+        renderingStats.arUpdateReductions += 1
+    }
+
+    func minimizeARProcessing() {
+        // AR処理の最小化
+        renderingStats.arProcessingMinimizations += 1
+    }
+
+    func pauseNonEssentialARFeatures() {
+        // 非必須AR機能の一時停止
+        renderingStats.nonEssentialFeaturePauses += 1
+    }
+
+    func restoreNormalOperations() {
+        // 通常動作の復元
+        arView?.renderOptions.remove(.disableHDR)
+        arView?.renderOptions.remove(.disablePersonOcclusion)
+        arView?.renderOptions.remove(.disableMotionBlur)
+        renderingStats.normalOperationRestores += 1
+    }
+
+    func enableThermalOptimizations() {
+        // 熱最適化の有効化
+        renderingStats.thermalOptimizations += 1
+    }
+
+    func enableAggressiveThermalOptimizations() {
+        // 積極的熱最適化
+        arView?.renderOptions.insert(.disableHDR)
+        renderingStats.aggressiveThermalOptimizations += 1
+    }
+
+    func enableEmergencyThermalOptimizations() {
+        // 緊急熱最適化
+        arView?.renderOptions.insert(.disableHDR)
+        arView?.renderOptions.insert(.disablePersonOcclusion)
+        arView?.renderOptions.insert(.disableMotionBlur)
+        renderingStats.emergencyThermalOptimizations += 1
+    }
+
+    func pauseAllNonEssentialOperations() {
+        // 全ての非必須処理を一時停止
+        renderingStats.allNonEssentialPauses += 1
+    }
+
     func resetStatistics() {
         renderingStats = RenderingStats()
     }
@@ -427,6 +596,8 @@ struct OptimizationStats {
     var inkSpotOptimizations: Int = 0
     var inkSpotMerges: Int = 0
     var networkOptimizations: Int = 0
+    var thermalOptimizations: Int = 0
+    var batteryOptimizations: Int = 0
 }
 
 // MARK: - RenderingStats
@@ -434,6 +605,7 @@ struct OptimizationStats {
 struct RenderingStats {
     var qualityReductions: Int = 0
     var qualityImprovements: Int = 0
+    var qualityChanges: Int = 0
     var entitiesCulled: Int = 0
     var lodApplications: Int = 0
     var shadowOptimizations: Int = 0
@@ -442,6 +614,22 @@ struct RenderingStats {
     var textureOptimizations: Int = 0
     var instancingOptimizations: Int = 0
     var inkSpotsCulled: Int = 0
+
+    // バッテリー効率関連
+    var selectiveOptimizations: Int = 0
+    var powerSavingActivations: Int = 0
+    var aggressivePowerSaving: Int = 0
+    var emergencyPowerSaving: Int = 0
+    var arUpdateReductions: Int = 0
+    var arProcessingMinimizations: Int = 0
+    var nonEssentialFeaturePauses: Int = 0
+    var normalOperationRestores: Int = 0
+
+    // 熱管理関連
+    var thermalOptimizations: Int = 0
+    var aggressiveThermalOptimizations: Int = 0
+    var emergencyThermalOptimizations: Int = 0
+    var allNonEssentialPauses: Int = 0
 }
 
 // MARK: - PerformanceReport

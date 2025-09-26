@@ -13,7 +13,6 @@ import RealityKit
 // MARK: - MemoryOptimizer
 
 /// メモリ使用量の最適化とリーク検出を担当するクラス
-@MainActor
 class MemoryOptimizer: ObservableObject {
     // MARK: - Properties
 
@@ -46,7 +45,7 @@ class MemoryOptimizer: ObservableObject {
     private func setupMemoryOptimization() {
         // メモリ監視の設定
         memoryMonitor.onMemoryUpdate = { [weak self] memoryUsage in
-            Task { @MainActor in
+            DispatchQueue.main.async {
                 self?.handleMemoryUpdate(memoryUsage)
             }
         }
@@ -100,10 +99,12 @@ class MemoryOptimizer: ObservableObject {
     }
 
     @objc private func handleMemoryWarning() {
-        memoryStats.memoryWarnings += 1
+        DispatchQueue.main.async { [weak self] in
+            self?.memoryStats.memoryWarnings += 1
 
-        if autoCleanupEnabled {
-            performEmergencyCleanup()
+            if self?.autoCleanupEnabled == true {
+                self?.performEmergencyCleanup()
+            }
         }
     }
 
@@ -145,8 +146,10 @@ class MemoryOptimizer: ObservableObject {
     // MARK: - Game-Specific Optimization
 
     func optimizeGameMemory(gameState: GameState) {
-        // インクスポットの最適化
-        optimizeInkSpots(gameState.inkSpots)
+        // インクスポットの最適化（GameStateから取得）
+        if let currentSession = gameState.currentGameSession {
+            optimizeInkSpots(currentSession.inkSpots)
+        }
 
         // プレイヤーデータの最適化
         optimizePlayerData(gameState.players)
@@ -173,7 +176,7 @@ class MemoryOptimizer: ObservableObject {
 
     private func optimizePlayerData(_ players: [Player]) {
         // プレイヤーデータの最適化
-        for player in players {
+        for _ in players {
             // 不要なデータの削除
             // 例: 古い位置履歴、統計データの圧縮など
         }

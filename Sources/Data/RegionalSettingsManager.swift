@@ -150,6 +150,11 @@ class RegionalSettingsManager {
             currentRegion = region
         } else {
             // システムの地域設定から推測
+            currentRegion = .global // 一時的にデフォルト値を設定
+        }
+
+        // 実際の地域検出は初期化後に実行
+        if currentRegion == .global {
             currentRegion = detectSystemRegion()
         }
 

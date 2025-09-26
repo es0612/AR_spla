@@ -158,6 +158,20 @@ struct SettingsView: View {
                 }
             }
 
+            Section("パフォーマンス・最適化") {
+                NavigationLink(destination: BatteryOptimizationView()) {
+                    HStack {
+                        Image(systemName: "battery.100")
+                            .foregroundColor(.green)
+                        Text("バッテリー最適化")
+                        Spacer()
+                        Text("省電力・熱管理")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+
             Section("アクセシビリティ・プライバシー") {
                 NavigationLink(destination: AccessibilitySettingsView()) {
                     HStack {

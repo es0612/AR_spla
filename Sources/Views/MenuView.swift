@@ -51,7 +51,7 @@ struct MenuView: View {
                 .disabled(gameState.isConnecting || gameState.isGameActive)
                 .accessibilityLabel("start_game".localized)
                 .accessibilityHint(gameState.isConnecting ? "connecting".localized : gameState.isGameActive ? "game_in_progress".localized : "multiplayer_hint".localized)
-                .accessibilityAddTraits(gameState.isConnecting || gameState.isGameActive ? .notEnabled : .isButton)
+                .accessibilityAddTraits(gameState.isConnecting || gameState.isGameActive ? [] : .isButton)
 
                 Button(action: {
                     // TODO: シングルプレイヤー機能（将来実装）
@@ -72,9 +72,9 @@ struct MenuView: View {
                 .disabled(true)
                 .accessibilityLabel("singleplayer_title".localized)
                 .accessibilityHint("feature_coming_soon".localized)
-                .accessibilityAddTraits(.notEnabled)
+                .accessibilityAddTraits([])
 
-                NavigationLink(destination: ARGameView(gameState: gameState, errorManager: errorManager, tutorialManager: tutorialManager)) {
+                NavigationLink(destination: ARGameView(gameState: gameState, errorManager: errorManager, tutorialManager: tutorialManager, deviceCompatibility: deviceCompatibility)) {
                     RTLHStack {
                         Image(systemName: "arkit")
                             .accessibilityHidden(true)
@@ -276,6 +276,11 @@ struct GameStatusCard: View {
 
 #Preview {
     NavigationStack {
-        MenuView(gameState: GameState(), errorManager: ErrorManager(), tutorialManager: TutorialManager())
+        MenuView(
+            gameState: GameState(),
+            errorManager: ErrorManager(),
+            tutorialManager: TutorialManager(),
+            deviceCompatibility: DeviceCompatibilityManager()
+        )
     }
 }
